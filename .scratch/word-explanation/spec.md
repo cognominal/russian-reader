@@ -480,6 +480,17 @@ consequence, not an accident.
   pins that word.
 - The header's grammar chip shows the clicked form's tag and is **not rendered** when there is none
   (Q18): a chip reading «нет данных» tells the reader nothing and costs a line of the header.
+- The chip explains itself on hover and on focus (Q19): a `role="tooltip"` popup 6 px under the chip,
+  one row per tag component — the code in a monospace column, what it means in the other. The rows come
+  from `src/lib/grammar.ts`, which carries the dictionary's own `grammemes.json` (name → Russian name)
+  minus its category nodes, so any tag a future article produces is explainable; `UNKN` is special-cased
+  because it is not a grammeme but pymorphy3's answer for a form it does not know. The popup is
+  `position: fixed` — the pane is a scroll container and would clip an absolute one — placed from the
+  chip's box and re-placed on window scroll and resize. The chip is a `button` so the keyboard can reach
+  it, which is also how a tap opens the popup on a touch screen.
+- The popup is not interactive, so dismissal needs no grace period: it goes when the pointer leaves the
+  chip, on blur, when a new answer arrives (the tag it explained is gone), and on Escape — which is why
+  the popup is the **first** layer of the page's Escape stack, above the answer (Q19).
 - The word controls are `button.tok`: `--sentence` wash while one is the open word, `--accent-soft` on
   hover, `border-radius: 2px`, and no custom focus style — the default ring is what the article's
   sentence buttons already use.
@@ -626,9 +637,18 @@ Browser (real Chromium, as the reader is verified today):
     header for «распорядилась» now reads `VERB,perf,intr femn,sing,past,indc` and for «подрыву»
     `NOUN,inan,masc sing,datv` — the clicked form's, not the lemma's.
 
+26. **Ran 2026-10-19**, after the request that the chip explain itself: hovering the chip on
+    «распорядилась» (`VERB,perf,intr femn,sing,past,indc`) put a 7-row popup 6 px under it, 226×158 px,
+    inside the viewport and over the answer text — the pane's `overflow-y: auto` did not clip it. Moving
+    the pointer away left 0 popups; `focus` on the chip brought it back; the first Escape closed the
+    popup and left the answer (1 `.explain`, 0 popups), the second closed the answer and returned the
+    article (373 sentences). At 800×900 the popup's right edge sat at 522 px and it stayed 6 px under the
+    chip across a 320 px window scroll.
+
 ## 13. Non-goals
 
-- No gloss on hover, no word-level English alignment.
+- No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
+  the codes (Q19), not the word, and outside the sentence pane the words stay plain text.
 - No clickable words in the article text — removed 2026-10-19. The rare ranking stays in the JSON as
   data; nothing in the first pane is a control except the sentence itself.
 - No streaming (the answer is ~120 words; a spinner is enough), no per-user accounts or quotas, no
@@ -690,6 +710,10 @@ pointers.
 - **Q18 — answered** (user's report, 2026-10-19): the pipeline writes every token's own pymorphy3 tag
   and the prompt and the header use it, falling back to the rare entry's and then to «нет данных»; the
   header renders no chip when there is no tag. See §4, §7, §9.
+- **Q19 — answered** (user's request, 2026-10-19): the terse chip pops up a per-component gloss of its
+  tag on hover and on focus, and dismissal is fourfold — pointer away, blur, a new answer, or Escape,
+  which closes the popup before the answer, making the popup the top layer of the Escape stack. It is
+  not interactive, so there is no pointer grace period and no click-to-pin. See §9, §12.
 - **Q17 — answered** (user's report, 2026-10-19): the pane shows the fetched Wiktionary text verbatim
   under a collapsed block, plus a link to the page, so «по данным Викисловаря» points at something the
   reader can read. See §2, §4, §7.1, §9.

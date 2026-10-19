@@ -43,6 +43,10 @@
 	let pane = $state<HTMLElement | null>(null);
 	let savedScroll = 0;
 
+	/** The grammar popup in the explanation pane. It lives here for one reason:
+	 *  Escape is a layer stack, and the popup is the topmost layer (Q19). */
+	let tooltip = $state(false);
+
 	// «спрашиваю…» and every pre-answer failure report next to the clicked word.
 	const note = $derived.by(() => {
 		if (ask === null || status === 'idle' || status === 'ready') return null;
@@ -69,12 +73,14 @@
 	 * Tab walks the sentences in reading order, Shift+Tab walks back; the first
 	 * press starts at the first sentence (Shift+Tab at the last). Past either end
 	 * the key is left to the browser, so the header links stay reachable. Escape
-	 * is layered: it closes the answer first, then clears the selection, and with
-	 * neither it is left to the browser. A sentence chosen this way pins no word.
+	 * is layered: it closes the grammar popup first, then the answer, then clears
+	 * the selection, and with none of them it is left to the browser. A sentence
+	 * chosen this way pins no word.
 	 */
 	function onKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
-			if (answer !== null) void close();
+			if (tooltip) tooltip = false;
+			else if (answer !== null) void close();
 			else if (selection !== null) selection = null;
 			return;
 		}
@@ -231,7 +237,7 @@
 		bind:this={pane}
 	>
 		{#if answer !== null && openWord !== null}
-			<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} />
+			<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} bind:tooltip />
 		{:else}
 			<RussianPane article={data.article} {selection} onSelect={select} />
 		{/if}
