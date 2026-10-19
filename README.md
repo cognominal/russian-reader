@@ -167,7 +167,7 @@ Deleting the directory is the eviction policy.
 
 ## Licence
 
-MIT for the code, the prompt and the documentation — `LICENSE` records what that does *not* cover: the
-article texts and their official translations under `data/`, `reference/` and `src/lib/content/` are
-kremlin.ru's and are here only as the pipeline's input and output, and the tag table in
-`src/lib/grammar.ts` stays CC BY-SA, from OpenCorpora.
+MIT for the code, the prompt and the documentation — `LICENSE`. `NOTICE` records what that does *not*
+cover: the article texts and their official translations under `data/`, `reference/` and
+`src/lib/content/` are kremlin.ru's and are here only as the pipeline's input and output, and the tag
+table in `src/lib/grammar.ts` stays CC BY-SA, from OpenCorpora.

@@ -19,19 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
---------------------------------------------------------------------------
-
-Scope: this licence covers the source code, the prompt and the documentation
-written for this project. It does not cover the material below.
-
-Article texts. `data/`, `reference/` and `src/lib/content/` hold texts published
-by kremlin.ru and their official English translations. They are the property of
-the Presidential Administration of Russia, are included here only as the input
-and the output of the extraction pipeline, and are not licensed by this file.
-Read them at their source, which each dump records in its own header.
-
-Grammeme names. The tag table in `src/lib/grammar.ts` is derived from the
-OpenCorpora dictionary (http://opencorpora.org, CC BY-SA) through
-pymorphy3-dicts (https://github.com/no-plagiarism/pymorphy3-dicts, MIT, © Danylo
-Halaiko). That table remains under CC BY-SA with attribution to OpenCorpora.
