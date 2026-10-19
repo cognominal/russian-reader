@@ -55,7 +55,9 @@
 		<span class="word">{answer.word}</span>
 		<span class="arrow" aria-hidden="true">→</span>
 		<span class="lemma">{answer.lemma}</span>
-		<span class="grammar">{answer.grammar}</span>
+		{#if answer.grammar !== null}
+			<span class="grammar">{answer.grammar}</span>
+		{/if}
 		<button type="button" class="close" onclick={onclose} title="Закрыть" aria-label="Закрыть объяснение">×</button>
 	</div>
 

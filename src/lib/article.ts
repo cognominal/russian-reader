@@ -36,6 +36,11 @@ export interface RuToken {
 	end: number;
 	form: string;
 	lemma: string;
+	/**
+	 * This form's pymorphy3 tag string, e.g. `VERB,perf,intr past,femn,sing,indc`.
+	 * Optional because JSON written before the field lacks it.
+	 */
+	grammar?: string;
 	rare: boolean;
 	/**
 	 * A name: rendered italic and never clickable, in either pane. Computed by the

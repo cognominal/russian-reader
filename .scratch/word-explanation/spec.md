@@ -133,6 +133,11 @@ Response, 200:
 }
 ```
 
+`grammar` is the clicked form's own tag string — the case, number and tense of the word actually in
+front of the reader — and `null` when the form has none; the prompt's `{{grammar}}` falls back to the
+rare entry's tag and then to «нет данных». It used to come from `rare[]` alone, which left most clicks
+with «нет данных» in the chip *and* in the prompt (Q18).
+
 `sourceText` is the cleaned Wiktionary text the answer was given — `null` when the lookup found
 nothing, a stub included — and `sourceUrl` is the page it came from, derived from the API URL's origin
 so offering the link never costs a second lookup. Both are computed on every request, cache hits
@@ -226,7 +231,7 @@ The answer is cached **on disk**, keyed by the prompt that produced it:
 | --- | --- |
 | `{{word}}` | the clicked form, as it appears in the text |
 | `{{lemma}}` | dictionary form |
-| `{{grammar}}` | the rare entry's pymorphy3 tag string, verbatim — «нет данных» when the lemma is not in `rare[]` |
+| `{{grammar}}` | the clicked form's pymorphy3 tag string, verbatim — the rare entry's when the token carries none, «нет данных» otherwise |
 | `{{forms}}` | the other forms of the lemma found in this article, comma-separated — «нет данных» as above |
 | `{{sentence}}` | the Russian sentence the word sits in |
 | `{{translation}}` | the official English translation paired with that sentence |
@@ -473,6 +478,8 @@ consequence, not an accident.
   the same class with no handler attached.
 - The word line shows the clicked form and the lemma, and dims when the current selection no longer
   pins that word.
+- The header's grammar chip shows the clicked form's tag and is **not rendered** when there is none
+  (Q18): a chip reading «нет данных» tells the reader nothing and costs a line of the header.
 - The word controls are `button.tok`: `--sentence` wash while one is the open word, `--accent-soft` on
   hover, `border-radius: 2px`, and no custom focus style — the default ring is what the article's
   sentence buttons already use.
@@ -613,6 +620,12 @@ Browser (real Chromium, as the reader is verified today):
     рывать (рвать), далее от праслав. *rъvātī…» — the reconstruction the model had rendered as
     «*гъvаtī» — plus a link to `https://ru.wiktionary.org/wiki/подрыв`.
 
+25. **Ran 2026-10-19**, after the report that the header said «нет данных»: every token in both
+    regenerated articles carries its own tag (5238/5238 in 66181, 7254/7254 in 24034) with 0 differences
+    in `ru`/`en`/`pairs`/`sentences`/`rare`/`stats` and in every pre-existing token field. The pane
+    header for «распорядилась» now reads `VERB,perf,intr femn,sing,past,indc` and for «подрыву»
+    `NOUN,inan,masc sing,datv` — the clicked form's, not the lemma's.
+
 ## 13. Non-goals
 
 - No gloss on hover, no word-level English alignment.
@@ -674,6 +687,9 @@ pointers.
 - **Q15 — answered**: the cache hash covers `model|temperature|max_tokens` appended to the rendered
   prompt, because the same prompt sent to a different model is a different answer. The user asked for
   "the sha1 of the used prompt"; the extra fields are a superset and one line to drop. See §6.
+- **Q18 — answered** (user's report, 2026-10-19): the pipeline writes every token's own pymorphy3 tag
+  and the prompt and the header use it, falling back to the rare entry's and then to «нет данных»; the
+  header renders no chip when there is no tag. See §4, §7, §9.
 - **Q17 — answered** (user's report, 2026-10-19): the pane shows the fetched Wiktionary text verbatim
   under a collapsed block, plus a link to the page, so «по данным Викисловаря» points at something the
   reader can read. See §2, §4, §7.1, §9.

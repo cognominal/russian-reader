@@ -341,6 +341,9 @@ def main() -> int:
                     "end": m.end(),
                     "form": form,
                     "lemma": lemma,
+                    # the tag of this form, not of the lemma: the reader and the
+                    # prompt both want the case, number and tense they clicked
+                    "grammar": str(parse.tag),
                     "rare": False,
                     "proper": proper,
                 }

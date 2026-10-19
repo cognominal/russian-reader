@@ -75,7 +75,7 @@ export function promptContext(
 		context: {
 			word: token.form,
 			lemma: token.lemma,
-			grammar: rare ? rare.grammar : NO_DATA,
+			grammar: token.grammar ?? (rare ? rare.grammar : NO_DATA),
 			forms: rare && rare.forms.length > 0 ? rare.forms.join(', ') : NO_DATA,
 			sentence: paragraph.ru.slice(sentence.start, sentence.end).trim(),
 			translation: englishFor(paragraph, si).trim(),

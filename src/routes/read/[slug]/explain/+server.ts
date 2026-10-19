@@ -189,7 +189,7 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 		const answer: ExplainAnswer = {
 			word: record.word,
 			lemma: record.lemma,
-			grammar: context.grammar,
+			grammar: context.token.grammar ?? null,
 			meaning: record.answer.meaning,
 			etymology: record.answer.etymology,
 			example: record.answer.example,
@@ -242,7 +242,7 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	const answer: ExplainAnswer = {
 		word: fresh.word,
 		lemma: fresh.lemma,
-		grammar: context.grammar,
+		grammar: context.token.grammar ?? null,
 		meaning: fresh.answer.meaning,
 		etymology: fresh.answer.etymology,
 		example: fresh.answer.example,

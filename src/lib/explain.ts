@@ -32,8 +32,8 @@ export type ExplainAnswer = {
 	/** The clicked form, as it appears in the text. */
 	word: string
 	lemma: string
-	/** The rare entry's pymorphy3 tag string, or «нет данных». */
-	grammar: string
+	/** The clicked form's pymorphy3 tag string, or null when it has none. */
+	grammar: string | null
 	/** With `parsed: false` this holds the model's raw prose. */
 	meaning: string
 	etymology: string | null
