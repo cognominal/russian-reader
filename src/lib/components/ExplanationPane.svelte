@@ -85,9 +85,22 @@
 			{/if}
 		</div>
 		<!-- A rewrite of a sourced etymology and a recollection are not the same
-		     claim, so the pane says which one this is. At full contrast: a dim
-		     attribution reads as part of the answer's body. -->
-		<p class="source">{answer.etymologySource === 'wiktionary' ? 'по данным Викисловаря' : 'сгенерировано, не проверено'}</p>
+		     claim, so the pane says which one this is — and, when there is a
+		     source, shows it. The model rewrites prose; it does not get to be the
+		     only witness for a reconstruction it may have mangled. At full
+		     contrast: a dim attribution reads as part of the answer's body. -->
+		<div class="source">
+			<p class="attribution">{answer.etymologySource === 'wiktionary' ? 'по данным Викисловаря' : 'сгенерировано, не проверено'}</p>
+			{#if answer.sourceText !== null}
+				<details class="quoted">
+					<summary>Текст из Викисловаря</summary>
+					<p class="quoted-text">{answer.sourceText}</p>
+				</details>
+			{/if}
+			{#if answer.sourceUrl !== null}
+				<a class="source-link" href={answer.sourceUrl} target="_blank" rel="noreferrer">{answer.lemma} в Викисловаре</a>
+			{/if}
+		</div>
 	{:else}
 		<!-- The model answered prose instead of the requested JSON: no fields to
 		     label, no etymology to attribute, and no answer thrown away. -->
@@ -191,9 +204,33 @@
 
 	.source {
 		max-width: 46rem;
-		margin: 0;
 		padding: 0 1.5rem;
 		color: var(--fg-muted);
 		font-size: 0.85rem;
+	}
+
+	.attribution {
+		margin: 0;
+	}
+
+	.quoted {
+		margin: 0.5rem 0 0;
+	}
+
+	.quoted summary {
+		cursor: pointer;
+	}
+
+	.quoted-text {
+		margin: 0.4rem 0 0;
+		padding-left: 0.8rem;
+		border-left: 2px solid var(--rule);
+		line-height: 1.6;
+	}
+
+	.source-link {
+		display: inline-block;
+		margin-top: 0.5rem;
+		color: var(--accent);
 	}
 </style>

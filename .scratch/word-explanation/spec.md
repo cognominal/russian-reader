@@ -30,6 +30,7 @@ today.
 | **The open word wears the article's own "current" wash; Tab keeps the answer, dimmed** (user's call, 2026-10-19, Q6) | `--sentence` already means "the current one" here, and a clicked word is exactly that; `--accent-soft` keeps its existing meaning (hover, and the marked English runs). Tab then moves the selection without destroying what is being read — the dim, derived from "the selection no longer shows that word's sentence", is the cue that the left pane is not about the current pair | Accent-tinting the word (a second meaning for a colour that already means hover); tinting the sentence in the sentence pane (it holds one sentence); closing the answer on any selection change |
 | **The pane opens when an answer arrives, not when the word is clicked** (user's call, 2026-10-19, Q11) | Measured: a cold click costs ~2.5 s (a Wiktionary GET plus one model call), a cache hit costs a file read. Swapping on arrival keeps every pre-answer failure — 429, 503, 5xx, timeout, missing key, prompt typo — next to the word with the article untouched, so §11's rule holds with no classify-then-un-swap path and no pre-flight knowledge of the deployment state. The deferred layout change is paid only on cold clicks | Swapping at click time and reporting 429/503/5xx inside the pane; a preflight request; un-swapping on rejection |
 | **A second click replaces the answer in place** (user's call, 2026-10-19, Q12) | The pane is already the answer surface; demanding a close first turns a one-gesture lookup into two. The abort plus the monotonic request id already guarantee that a slow answer cannot overwrite a newer one, and the previous answer is kept (dimmed) rather than cleared, so a failed re-click never blanks the pane | Requiring a close first; a queue of answers; clearing the body on the click |
+| **The pane shows the fetched Wiktionary text, not only the model's rewrite** (user's report, 2026-10-19, Q17) | The report that "the wiktionary entry is missing" was right in the way that matters: the fetch happened and the label was honest, but the reader saw only a paraphrase — and in the one case examined the paraphrase mangled the very detail the source had been fetched for (`*rъvātī` came back as `*гъvаtī`). Showing the cleaned text verbatim, plus a link to the page, makes the attribution checkable | Only a link to the page; only the label; storing the text in the cache record — it is already in the prompt, and the lookup runs before the cache read, so the response carries it either way |
 | **Prompt in a file, read on every request** | The user asked to edit it. Reading per request (a ~2 KB file) means an edit takes effect on the next click with no restart and no rebuild | Prompt in code; prompt cached at boot |
 | **The server re-derives everything from the article JSON** | The request carries `{slug, paragraph, tokenIndex}`; the word, lemma, grammar, sentence and translation come from `src/lib/content/<slug>.json`. The client cannot put arbitrary text into the prompt, and the endpoint is not a general Russian-word proxy | Client sends the word and sentence text |
 | **Limit via a cookie, 2 minutes** | The user asked for it. `Max-Age=120` makes the cookie itself the window — no server-side clock, no storage | In-memory per-IP map (add it later if the endpoint is ever exposed) |
@@ -123,12 +124,19 @@ Response, 200:
   "etymology": "…",
   "example": "…",
   "etymologySource": "wiktionary",
+  "sourceText": "Происходит от гл. подрывать, из под- + рывать (рвать), далее от праслав. *rъvātī, …",
+  "sourceUrl": "https://ru.wiktionary.org/wiki/%D0%BF%D0%BE%D0%B4%D1%80%D1%8B%D0%B2",
   "cached": false,
   "parsed": true,
   "retryAfter": 120,
   "elapsedMs": 1840
 }
 ```
+
+`sourceText` is the cleaned Wiktionary text the answer was given — `null` when the lookup found
+nothing, a stub included — and `sourceUrl` is the page it came from, derived from the API URL's origin
+so offering the link never costs a second lookup. Both are computed on every request, cache hits
+included, because the lookup runs before the cache is read (Q16).
 
 `parsed: false` means the model answered prose instead of the requested JSON: the raw text is
 returned in `meaning`, the other two fields are `null`, and the pane shows it as one block. That is
@@ -256,6 +264,8 @@ rarest lemmas and most common words.
   fetches either, since a cache hit never consults it.
 - Coverage measured 2026-10-19 on the rendered pages: 2/30 among the 30 rarest lemmas of 66181, 10/30 in
   24034, 8/9 among common words. en.wiktionary does not earn a second request (2/10).
+- The fetched text is returned in the 200 as `sourceText` and shown in the pane verbatim (Q17), with
+  `sourceUrl` as a link, so the reader can check the paraphrase against the source it credits.
 - The **lemma** is looked up, not the clicked form: «пороговых» → «пороговый», a stub, while «порог» is
   rich. A base-word fallback would be a real improvement; it is a non-goal for now, and this is where it
   would go.
@@ -416,6 +426,9 @@ consequence, not an accident.
 - The source line under the etymology reads «по данным Викисловаря» when `etymologySource` is
   `wiktionary`, and «сгенерировано, не проверено» otherwise. It is hidden entirely when `parsed` is
   false — there is no etymology field to attribute.
+- The source block sits at the end of the pane at full contrast: the attribution line, a collapsed
+  `<details>` «Текст из Викисловаря» holding `sourceText`, and a link to `sourceUrl` naming the lemma
+  (Q17). The model's prose dims; the attribution and the way to check it do not.
 - The open word carries the article's own "current" wash: `background: var(--sentence)`, hover
   `--accent-soft`, `border-radius: 2px`, `aria-current="true"`, and the browser's focus ring left
   alone. The tint exists only while the sentence pane still shows that word's sentence — after Tab the
@@ -594,6 +607,12 @@ Browser (real Chromium, as the reader is verified today):
     0 files, and both articles still render 373/373 and 556/556 sentences byte-identical to their JSON
     with 0 `button` elements in the article pane.
 
+24. **Ran 2026-10-19**, after the report that the entry was missing: clicking «подрыву» (66181 ¶2)
+    answered from the cache in 659 ms, and the pane showed, under «по данным Викисловаря», a collapsed
+    «Текст из Викисловаря» holding 763 characters starting «Происходит от гл. подрывать, из под- +
+    рывать (рвать), далее от праслав. *rъvātī…» — the reconstruction the model had rendered as
+    «*гъvаtī» — plus a link to `https://ru.wiktionary.org/wiki/подрыв`.
+
 ## 13. Non-goals
 
 - No gloss on hover, no word-level English alignment.
@@ -655,6 +674,9 @@ pointers.
 - **Q15 — answered**: the cache hash covers `model|temperature|max_tokens` appended to the rendered
   prompt, because the same prompt sent to a different model is a different answer. The user asked for
   "the sha1 of the used prompt"; the extra fields are a superset and one line to drop. See §6.
+- **Q17 — answered** (user's report, 2026-10-19): the pane shows the fetched Wiktionary text verbatim
+  under a collapsed block, plus a link to the page, so «по данным Викисловаря» points at something the
+  reader can read. See §2, §4, §7.1, §9.
 - **Q16 — open, found while implementing**: a cache hit still performs the Wiktionary GET, because the
   key is the rendered prompt and the etymology is part of it. So a re-click costs ~0.4 s instead of a
   file read, and a Wiktionary outage changes the hash, misses the cache and spends a model call on a

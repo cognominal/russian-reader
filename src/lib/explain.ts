@@ -39,6 +39,10 @@ export type ExplainAnswer = {
 	etymology: string | null
 	example: string | null
 	etymologySource: 'wiktionary' | 'model'
+	/** The cleaned ru.wiktionary «Этимология» the answer was given, shown verbatim. */
+	sourceText: string | null
+	/** The page `sourceText` came from, so the reader can check it themselves. */
+	sourceUrl: string | null
 	/** Served from the disk cache rather than from a model call. */
 	cached: boolean
 	/** False when the model answered prose instead of the requested JSON. */

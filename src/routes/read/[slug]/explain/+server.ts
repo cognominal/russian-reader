@@ -167,6 +167,18 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	// the cache is consulted (§6). It never fails the request.
 	const etymology = await lookupEtymology(config, context.lemma)
 	const etymologySource: 'wiktionary' | 'model' = etymology ? 'wiktionary' : 'model'
+
+	// The page the fetched text came from, for the pane's own link to it: derived
+	// from the API URL, so offering the link never costs a second lookup.
+	const wiktionaryApi = config.wiktionaryUrl.trim()
+	let sourceUrl: string | null = null
+	if (wiktionaryApi !== '' && wiktionaryApi.toLowerCase() !== 'off') {
+		try {
+			sourceUrl = `${new URL(wiktionaryApi).origin}/wiki/${encodeURIComponent(context.lemma)}`
+		} catch {
+			sourceUrl = null
+		}
+	}
 	const prompt = renderPrompt(template, promptValues(context, etymology ?? NO_DATA))
 	const hash = promptHash(prompt, config.model, config.temperature, config.maxTokens)
 
@@ -182,6 +194,8 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 			etymology: record.answer.etymology,
 			example: record.answer.example,
 			etymologySource: record.etymologySource,
+			sourceText: etymology,
+			sourceUrl,
 			cached: true,
 			parsed: parsed.parsed,
 			retryAfter: 0,
@@ -233,6 +247,8 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 		etymology: fresh.answer.etymology,
 		example: fresh.answer.example,
 		etymologySource: fresh.etymologySource,
+		sourceText: etymology,
+		sourceUrl,
 		cached: false,
 		parsed: parsed.parsed,
 		retryAfter: EXPLAIN_WINDOW_MS / 1000,
