@@ -4,13 +4,22 @@ import { json } from '@sveltejs/kit'
 import { env } from '$env/dynamic/private'
 import type { RequestHandler } from './$types'
 import type { Article } from '$lib/article'
-import type { ExplainAnswer, ExplainError } from '$lib/explain'
-import { EXPLAIN_COOKIE, EXPLAIN_WINDOW_MS } from '$lib/explain'
+import type { ExplainAnswer, ExplainError, ExplainRequest } from '$lib/explain'
+import {
+	EXPLAIN_COOKIE,
+	EXPLAIN_LIMIT,
+	EXPLAIN_SESSION_COOKIE,
+	EXPLAIN_SESSION_MS,
+	EXPLAIN_WINDOW_MS
+} from '$lib/explain'
 import type { PromptContext } from '$lib/explain-server'
 import {
-	cookieDecision,
+	activeCalls,
 	etymologyFromPage,
+	limitDecision,
 	NO_DATA,
+	paneContext,
+	parseCalls,
 	parseModelAnswer,
 	promptContext,
 	promptHash,
@@ -35,6 +44,11 @@ const DEFAULT_USER_AGENT = 'ru-reader/0.1 (personal reading tool)'
 const UPSTREAM_MESSAGE = 'Сервис объяснений ответил ошибкой (502)'
 const TIMEOUT_MESSAGE = 'Сервис не ответил вовремя'
 
+// A click becomes prompt text, so both are bounded: one click cannot write a
+// kilobyte of prompt, and neither can a hand-made request.
+const MAX_WORD_CHARS = 64
+const MAX_SENTENCE_CHARS = 400
+
 type Config = {
 	baseUrl: string
 	apiKey: string
@@ -53,7 +67,8 @@ type CacheRecord = {
 	promptHash: string
 	createdAt: string
 	slug: string
-	paragraph: number
+	/** Null for a word of the pane's own prose, which belongs to no paragraph (Q20). */
+	paragraph: number | null
 	ruSentence: string
 	word: string
 	lemma: string
@@ -78,14 +93,15 @@ const inFlight = new Map<string, Promise<CacheRecord>>()
 export const POST: RequestHandler = async ({ request, params, cookies, url }) => {
 	const started = Date.now()
 	const slug = params.slug
-	let paragraph = -1
-	let lemma = '-'
+	let source: ExplainRequest['source'] = 'article'
+	let paragraph: number | null = null
+	let word = '-'
 	let cached = false
 
 	const log = (status: number) => {
 		const elapsedMs = Date.now() - started
 		console.log(
-			`explain slug=${slug} paragraph=${paragraph} lemma=${lemma} cached=${cached} status=${status} elapsedMs=${elapsedMs}`
+			`explain slug=${slug} source=${source} paragraph=${paragraph ?? '-'} word=${word} cached=${cached} status=${status} elapsedMs=${elapsedMs}`
 		)
 		return elapsedMs
 	}
@@ -93,6 +109,19 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	const fail = (status: number, error: ExplainError, headers: Record<string, string> = {}) => {
 		log(status)
 		return json(error, { status, headers })
+	}
+
+	/** Every ask, cached or not, is activity: the session's hour restarts here. */
+	const refreshSession = () => {
+		cookies.set(EXPLAIN_SESSION_COOKIE, String(Date.now()), {
+			path: '/read',
+			maxAge: EXPLAIN_SESSION_MS / 1000,
+			// The page reads this one to know whether the panels it remembers are still
+			// this session's, so it is not HttpOnly — and it holds no secret (Q20).
+			httpOnly: false,
+			sameSite: 'lax',
+			secure: url.protocol === 'https:'
+		})
 	}
 
 	let body: unknown
@@ -103,11 +132,7 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	}
 
 	const input = (body ?? {}) as Record<string, unknown>
-	if (!Number.isInteger(input.paragraph) || !Number.isInteger(input.tokenIndex)) {
-		return fail(400, { error: 'bad-request', message: 'Неверный запрос' })
-	}
-	paragraph = input.paragraph as number
-	const tokenIndex = input.tokenIndex as number
+	source = input.source === 'pane' ? 'pane' : 'article'
 
 	const entry = Object.entries(articles).find(([path]) => path.endsWith(`/${slug}.json`))
 	if (!entry) {
@@ -115,18 +140,41 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	}
 	const article = (await entry[1]()).default
 
-	const derived = promptContext(article, paragraph, tokenIndex)
-	if (!derived.ok) {
-		const message =
-			derived.reason === 'paragraph'
-				? 'Такого абзаца нет в статье'
-				: derived.reason === 'token'
-					? 'Такого слова нет в абзаце'
-					: 'Не удалось определить предложение'
-		return fail(400, { error: 'bad-request', message })
+	let context: PromptContext
+	if (source === 'pane') {
+		// A word of the explanation pane's own prose: the form and the sentence it sits
+		// in are everything the click can carry — no lemma, no tag, no paragraph, since
+		// the app has no morphology at runtime (Q20).
+		const form = typeof input.word === 'string' ? input.word.trim() : ''
+		const sentence = typeof input.sentence === 'string' ? input.sentence.trim() : ''
+		if (
+			form === '' ||
+			form.length > MAX_WORD_CHARS ||
+			sentence === '' ||
+			sentence.length > MAX_SENTENCE_CHARS
+		) {
+			return fail(400, { error: 'bad-request', message: 'Неверный запрос' })
+		}
+		word = form
+		context = paneContext(article, form, sentence)
+	} else {
+		if (!Number.isInteger(input.paragraph) || !Number.isInteger(input.tokenIndex)) {
+			return fail(400, { error: 'bad-request', message: 'Неверный запрос' })
+		}
+		paragraph = input.paragraph as number
+		const derived = promptContext(article, paragraph, input.tokenIndex as number)
+		if (!derived.ok) {
+			const message =
+				derived.reason === 'paragraph'
+					? 'Такого абзаца нет в статье'
+					: derived.reason === 'token'
+						? 'Такого слова нет в абзаце'
+						: 'Не удалось определить предложение'
+			return fail(400, { error: 'bad-request', message })
+		}
+		context = derived.context
+		word = context.word
 	}
-	const context = derived.context
-	lemma = context.lemma
 
 	const config = readConfig()
 	if (!config.baseUrl || !config.apiKey || !config.model) {
@@ -163,9 +211,14 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 		})
 	}
 
+	// A pane word has no lemma (Q20), so its own form is what gets looked up: the
+	// API's own redirects turn an inflected form into a page where ru.wiktionary has
+	// one, and a form without a page is a miss like any other.
+	const lookup = context.token === null ? context.word : context.lemma
+
 	// The fetched text is part of the rendered prompt, so it is fetched before
 	// the cache is consulted (§6). It never fails the request.
-	const etymology = await lookupEtymology(config, context.lemma)
+	const etymology = await lookupEtymology(config, lookup)
 	const etymologySource: 'wiktionary' | 'model' = etymology ? 'wiktionary' : 'model'
 
 	// The page the fetched text came from, for the pane's own link to it: derived
@@ -174,7 +227,7 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	let sourceUrl: string | null = null
 	if (wiktionaryApi !== '' && wiktionaryApi.toLowerCase() !== 'off') {
 		try {
-			sourceUrl = `${new URL(wiktionaryApi).origin}/wiki/${encodeURIComponent(context.lemma)}`
+			sourceUrl = `${new URL(wiktionaryApi).origin}/wiki/${encodeURIComponent(lookup)}`
 		} catch {
 			sourceUrl = null
 		}
@@ -188,8 +241,8 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 		const parsed = parseModelAnswer(record.raw)
 		const answer: ExplainAnswer = {
 			word: record.word,
-			lemma: record.lemma,
-			grammar: context.token.grammar ?? null,
+			lemma: context.token === null ? null : context.lemma,
+			grammar: context.token?.grammar ?? null,
 			meaning: record.answer.meaning,
 			etymology: record.answer.etymology,
 			example: record.answer.example,
@@ -201,18 +254,20 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 			retryAfter: 0,
 			elapsedMs: 0
 		}
+		refreshSession()
 		answer.elapsedMs = log(200)
 		return json(answer)
 	}
 
 	const cookie = cookies.get(EXPLAIN_COOKIE)
-	const decision = cookieDecision(cookie === undefined ? null : Number(cookie), Date.now())
+	const accepted = activeCalls(parseCalls(cookie ?? null), Date.now())
+	const decision = limitDecision(accepted, Date.now())
 	if (decision.limited) {
 		return fail(
 			429,
 			{
 				error: 'rate-limited',
-				message: 'Не чаще одного объяснения в 2 минуты',
+				message: `Не больше ${EXPLAIN_LIMIT} объяснений в час`,
 				retryAfter: decision.retryAfter
 			},
 			{ 'Retry-After': String(decision.retryAfter) }
@@ -241,8 +296,8 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 	const elapsedMs = log(200)
 	const answer: ExplainAnswer = {
 		word: fresh.word,
-		lemma: fresh.lemma,
-		grammar: context.token.grammar ?? null,
+		lemma: context.token === null ? null : context.lemma,
+		grammar: context.token?.grammar ?? null,
 		meaning: fresh.answer.meaning,
 		etymology: fresh.answer.etymology,
 		example: fresh.answer.example,
@@ -251,17 +306,21 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 		sourceUrl,
 		cached: false,
 		parsed: parsed.parsed,
-		retryAfter: EXPLAIN_WINDOW_MS / 1000,
+		// No cooldown follows an accepted call: the budget is a count, so the wait
+		// only ever comes from a refusal.
+		retryAfter: 0,
 		elapsedMs
 	}
 
-	cookies.set(EXPLAIN_COOKIE, String(acceptedAt), {
+	// The call joins the budget: what was in the window, plus this one.
+	cookies.set(EXPLAIN_COOKIE, [...accepted, acceptedAt].join('-'), {
 		path: '/read',
 		maxAge: EXPLAIN_WINDOW_MS / 1000,
 		httpOnly: true,
 		sameSite: 'lax',
 		secure: url.protocol === 'https:'
 	})
+	refreshSession()
 	return json(answer)
 }
 
@@ -293,7 +352,7 @@ async function produceAnswer(
 	context: PromptContext,
 	etymologySource: 'wiktionary' | 'model',
 	slug: string,
-	paragraph: number
+	paragraph: number | null
 ): Promise<CacheRecord> {
 	const reply = await callModel(config, prompt)
 	if (reply.content === null || reply.content.trim() === '' || reply.finishReason === 'length') {

@@ -10,7 +10,7 @@
 import { createHash } from 'node:crypto'
 import type { Article, Paragraph, RareLemma, RuToken } from './article'
 import { enRangeFor, formatDate, sentenceAt } from './article'
-import { EXPLAIN_WINDOW_MS } from './explain'
+import { EXPLAIN_LIMIT, EXPLAIN_WINDOW_MS } from './explain'
 
 export const NO_DATA = 'нет данных'
 
@@ -39,9 +39,11 @@ export type PromptContext = {
 	date: string
 	zipf: string
 	rank: string
-	sentenceIndex: number
+	/** Null for a pane word: it belongs to no sentence of the article (Q20). */
+	sentenceIndex: number | null
 	ruSentence: string
-	token: RuToken
+	/** Null for a pane word, which arrives without a lemma, a tag or a token. */
+	token: RuToken | null
 	rare: RareLemma | null
 }
 
@@ -88,6 +90,33 @@ export function promptContext(
 			token,
 			rare
 		}
+	}
+}
+
+/**
+ * Everything the prompt needs for a word that is not in the article: one clicked
+ * in the explanation pane's own prose (Q20). Only the word, the sentence it sits
+ * in, the title and the date are known; the lemma, the tag, the forms, the
+ * official translation and the rarity figures are all «нет данных», which is what
+ * the prompt is written to accept — it asks the model for the initial form when
+ * the word is an inflected one.
+ */
+export function paneContext(article: Article, word: string, sentence: string): PromptContext {
+	return {
+		word,
+		lemma: NO_DATA,
+		grammar: NO_DATA,
+		forms: NO_DATA,
+		sentence,
+		translation: NO_DATA,
+		title: article.title.ru,
+		date: formatDate(article.date),
+		zipf: NO_DATA,
+		rank: NO_DATA,
+		sentenceIndex: null,
+		ruSentence: sentence,
+		token: null,
+		rare: null
 	}
 }
 
@@ -258,14 +287,31 @@ function decodeEntities(text: string): string {
 		.replace(/&amp;/gi, '&')
 }
 
-export type CookieDecision = { limited: false } | { limited: true; retryAfter: number }
+/** The unix ms in a cookie value: `-`-separated, oldest first, junk dropped (§5). */
+export function parseCalls(value: string | null): number[] {
+	if (value === null) return []
+	const calls = value
+		.split('-')
+		.map((part) => Number(part))
+		.filter((at) => Number.isFinite(at) && at > 0)
+	calls.sort((a, b) => a - b)
+	// A hand-made cookie cannot carry an unbounded list: only the newest can count.
+	return calls.slice(-EXPLAIN_LIMIT)
+}
+
+/** The calls still inside the window, oldest first. */
+export function activeCalls(calls: number[], now: number): number[] {
+	return calls.filter((at) => at > now - EXPLAIN_WINDOW_MS)
+}
+
+export type LimitDecision = { limited: false } | { limited: true; retryAfter: number }
 
 /**
- * The cookie holds the unix ms of the accepted request (§5). A value that is
- * absent, unparsable or already past its window does not limit.
+ * Whether one more call fits in the budget. The wait is until the oldest call in
+ * the window ages out, which is the moment a slot frees.
  */
-export function cookieDecision(value: number | null, now: number): CookieDecision {
-	if (value === null || !Number.isFinite(value)) return { limited: false }
-	const retryAfter = Math.ceil((value + EXPLAIN_WINDOW_MS - now) / 1000)
-	return retryAfter > 0 ? { limited: true, retryAfter } : { limited: false }
+export function limitDecision(active: number[], now: number): LimitDecision {
+	if (active.length < EXPLAIN_LIMIT) return { limited: false }
+	const oldest = active[0] ?? now
+	return { limited: true, retryAfter: Math.ceil((oldest + EXPLAIN_WINDOW_MS - now) / 1000) }
 }

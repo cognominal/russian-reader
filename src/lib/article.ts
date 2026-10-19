@@ -1,3 +1,5 @@
+import type { PaneField } from './explain-text';
+
 /**
  * Types and render helpers for the frozen article JSON contract
  * (`src/lib/content/<slug>.json`, produced by the offline pipeline).
@@ -107,15 +109,35 @@ export interface Selection {
 }
 
 /**
- * The word an explanation belongs to: the paragraph and sentence it was clicked
- * in, and its index in `ruTokens`. It outlives the selection — Tab moves the
- * selection without closing the answer — so the explanation pane compares the two
- * to decide whether its answer is still about what is on screen.
+ * The word an explanation belongs to. Two origins, because a word can be asked
+ * about in two places: the article's sentence pane, and the explanation pane's own
+ * prose (Q20). It outlives the selection — Tab moves the selection without closing
+ * the answer — so the explanation pane compares the two to decide whether its
+ * answer is still about what is on screen.
  */
-export interface OpenWord {
+export type OpenWord = ArticleWord | PaneWord;
+
+/**
+ * A word of the article: the paragraph and sentence it was clicked in, and its
+ * index in `ruTokens`. The index is what marks the control in the sentence pane.
+ */
+export interface ArticleWord {
+	source: 'article';
 	paragraph: number;
 	sentence: number;
 	tokenIndex: number;
+}
+
+/**
+ * A word of the explanation pane's prose: the form, and which of the three fields
+ * it was clicked in — that pair is what marks it there. There is no lemma, no
+ * paragraph and no index to carry, because the endpoint is given the sentence
+ * instead (Q20).
+ */
+export interface PaneWord {
+	source: 'pane';
+	form: string;
+	field: PaneField;
 }
 
 /** A slice of a paragraph string that is uniform in both token and sentence membership. */

@@ -86,6 +86,7 @@
 		return (
 			pick !== null &&
 			openWord !== null &&
+			openWord.source === 'article' &&
 			openWord.paragraph === pick.paragraph.i &&
 			openWord.sentence === pick.sentence &&
 			openWord.tokenIndex === run.tokenIndex
@@ -111,6 +112,9 @@
 	$effect(() => {
 		const until = note?.retryUntil ?? null;
 		if (until === null || until <= Date.now()) return;
+		// Read the clock now: `now` is from mount, so the first render of a fresh note
+		// would otherwise count down from a time long past.
+		now = Date.now();
 		const id = setInterval(() => {
 			now = Date.now();
 			if (now >= until) clearInterval(id);
@@ -122,6 +126,8 @@
 			? Math.ceil((note.retryUntil - now) / 1000)
 			: 0
 	);
+	// The wait can now be most of an hour, where seconds stop being readable.
+	const leftText = $derived(left >= 60 ? `${Math.ceil(left / 60)} мин` : `${left} с`);
 </script>
 
 <div class="head">
@@ -135,7 +141,7 @@
 
 {#if picked !== null && ruSentence !== null}
 	<!-- single line on purpose: no whitespace text nodes may be inserted between the exact slices -->
-	<p class="line" lang="ru" data-para={picked.paragraph.i}><span class="tag">RU</span>{#each runs as run, k (k)}{@const open = isOpen(run)}{@const n = noteFor(run)}{#if run.tokenIndex === null}<span class="txt">{run.text}</span>{:else if run.proper}<span class="proper">{run.text}</span>{:else}<button type="button" class="tok" class:open={open} aria-current={open ? 'true' : undefined} data-tok={run.tokenIndex} onclick={() => choose(run)}>{run.text}</button>{/if}{#if n !== null}<span class="status">{n.text}{#if left > 0}<span class="count">ещё {left} с</span>{/if}</span>{/if}{/each}</p>
+	<p class="line" lang="ru" data-para={picked.paragraph.i}><span class="tag">RU</span>{#each runs as run, k (k)}{@const open = isOpen(run)}{@const n = noteFor(run)}{#if run.tokenIndex === null}<span class="txt">{run.text}</span>{:else if run.proper}<span class="proper">{run.text}</span>{:else}<button type="button" class="tok" class:open={open} aria-current={open ? 'true' : undefined} data-tok={run.tokenIndex} onclick={() => choose(run)}>{run.text}</button>{/if}{#if n !== null}<span class="status">{n.text}{#if left > 0}<span class="count">ещё {leftText}</span>{/if}</span>{/if}{/each}</p>
 	{#if enSentence !== null}
 		<p class="line" lang="en"><span class="tag">EN</span>{enSentence}</p>
 	{:else}

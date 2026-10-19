@@ -33,7 +33,7 @@ today.
 | **The pane shows the fetched Wiktionary text, not only the model's rewrite** (user's report, 2026-10-19, Q17) | The report that "the wiktionary entry is missing" was right in the way that matters: the fetch happened and the label was honest, but the reader saw only a paraphrase — and in the one case examined the paraphrase mangled the very detail the source had been fetched for (`*rъvātī` came back as `*гъvаtī`). Showing the cleaned text verbatim, plus a link to the page, makes the attribution checkable | Only a link to the page; only the label; storing the text in the cache record — it is already in the prompt, and the lookup runs before the cache read, so the response carries it either way |
 | **Prompt in a file, read on every request** | The user asked to edit it. Reading per request (a ~2 KB file) means an edit takes effect on the next click with no restart and no rebuild | Prompt in code; prompt cached at boot |
 | **The server re-derives everything from the article JSON** | The request carries `{slug, paragraph, tokenIndex}`; the word, lemma, grammar, sentence and translation come from `src/lib/content/<slug>.json`. The client cannot put arbitrary text into the prompt, and the endpoint is not a general Russian-word proxy | Client sends the word and sentence text |
-| **Limit via a cookie, 2 minutes** | The user asked for it. `Max-Age=120` makes the cookie itself the window — no server-side clock, no storage | In-memory per-IP map (add it later if the endpoint is ever exposed) |
+| **A budget of 20 explanations per hour, counted in a cookie** (user's call, 2026-10-20) | The user asked for it, replacing the 2-minute cooldown. The cookie holds the timestamps of the calls inside the hour and its own `Max-Age` is that hour — no server-side clock, no storage, and a reader who reads for an hour gets 20 calls instead of one per two minutes | An in-memory per-IP map (add it later if the endpoint is ever exposed); a server-side counter per session |
 | **Cache hits bypass the limit** | A cached answer makes no external call, so there is nothing to throttle; throttling it would only make repeat clicks feel broken | Counting every click |
 | **The cache is on disk, keyed by `sha1` of the request that produced it** (user's call, 2026-10-19, Q3) | A hash of the rendered prompt makes the prompt file self-versioning: edit one character and no stale answer can match, with no version counter to maintain. On disk, an answer survives a restart and is paid for once, ever | In-memory only (lost on restart); a `slug\|lemma\|sentence` key that cannot notice a prompt change; cache files committed as fixtures |
 | **Model output rendered as text, never HTML** | No markdown renderer, no `{@html}`, no sanitizer needed. Three text fields with `white-space: pre-wrap` | Markdown rendering of the answer |
@@ -72,31 +72,37 @@ sequenceDiagram
         C-->>E: answer
         E-->>P: 200 {…, cached:true} (no cookie touched)
     else not cached
-        E->>E: cookie explain_last present?
-        alt present
+        E->>E: the hour's budget spent (explain_calls)?
+        alt spent
             E-->>P: 429 {retryAfter}
-        else absent
+        else a slot free
             E->>E: render the prompt file with article data
             E->>M: chat completion
             M-->>E: JSON or prose
             E->>C: store
-            E-->>P: 200 + Set-Cookie explain_last=…, Max-Age=120
+            E-->>P: 200 + Set-Cookie explain_calls=…, Max-Age=3600
         end
     end
     P->>U: the answer replaces the article pane (right column untouched)
 ```
 
+A word clicked in the explanation pane's own prose takes the same path with `{source:'pane', word,
+sentence}` in place of the paragraph and the token index: no lemma, no tag, no translation, the same
+2-minute window and the same disk cache (Q20).
+
 ## 4. Server contract
 
 `POST /read/[slug]/explain` (`src/routes/read/[slug]/explain/+server.ts`, JSON in, JSON out).
 
-Request:
+Request — two shapes, because a word can be asked about in two places (Q20):
 
 ```json
-{ "paragraph": 57, "tokenIndex": 12 }
+{ "source": "article", "paragraph": 57, "tokenIndex": 12 }
+{ "source": "pane", "word": "порядок", "sentence": "От него и получилось «порядок»." }
 ```
 
-Validation, in order — each failure is a 4xx with a Russian `message` the pane can show verbatim:
+Validation, in order — each failure is a 4xx with a Russian `message` the pane can show verbatim. For
+`source: "article"` (the default when `source` is absent):
 
 1. body parses as JSON and both fields are integers → else `400 bad-request`
 2. `<slug>.json` exists (the same `import.meta.glob` the page uses) → else `404 not-found`
@@ -105,13 +111,20 @@ Validation, in order — each failure is a 4xx with a Russian `message` the pane
 5. the word's sentence, derived server-side from `token.start` with the same rule the reader uses
    (`sentenceAt(token.start) ?? sentenceAt(max(start, end - 1))`), exists → else `400 bad-request`
 
+For `source: "pane"`: the slug exists (2), and `word` is 1–64 characters and `sentence` 1–400, both
+non-empty after trimming → else `400 bad-request`. Nothing else can be checked, because there is nothing
+else to check: the click carries the form and the sentence it sits in.
+
 There is no rarity requirement any more: the article carries no clickable rare words, so any word of
 the paragraph may be asked about. `rare` only decides whether the frequency placeholders have values.
 
 Prompt inputs, all from the article JSON: the token's `form` and `lemma`; when that lemma is in
 `rare[]`, its `grammar` / `freq` (zipf) / `rank` / `forms`; the containing `ruSentences[i]` slice of
 `ru`; the paired English sentence(s) via the same range rule as `enRangeFor`; and the article's
-`title.ru` + `date`.
+`title.ru` + `date`. A pane word has none of the token-derived inputs, so `{{lemma}}`, `{{grammar}}`,
+`{{forms}}`, `{{translation}}`, `{{zipf}}` and `{{rank}}` are «нет данных» and only the form, its
+sentence, the title and the date are filled — which is what the prompt is written to accept: it asks
+for the initial form when the word is an inflected one.
 
 Response, 200:
 
@@ -128,10 +141,16 @@ Response, 200:
   "sourceUrl": "https://ru.wiktionary.org/wiki/%D0%BF%D0%BE%D0%B4%D1%80%D1%8B%D0%B2",
   "cached": false,
   "parsed": true,
-  "retryAfter": 120,
+  "retryAfter": 0,
   "elapsedMs": 1840
 }
 ```
+
+`lemma` and `grammar` are `null` for a pane word: the header then shows the form alone — no arrow, no
+chip — and the Wiktionary lookup used the form, so `sourceUrl` names the page that was actually read.
+
+`retryAfter` is 0 on an accepted answer: the budget is a count, so no wait follows a call, and the
+countdown only ever comes from a 429.
 
 `grammar` is the clicked form's own tag string — the case, number and tense of the word actually in
 front of the reader — and `null` when the form has none; the prompt's `{{grammar}}` falls back to the
@@ -158,22 +177,22 @@ Errors: `{ "error": "<code>", "message": "<Russian, shown in the pane>", "retryA
 | --- | --- | --- | --- |
 | 400 | `bad-request` | malformed body, unknown paragraph/token, non-rare word | the message |
 | 404 | `not-found` | unknown slug | the message |
-| 429 | `rate-limited` | `explain_last` cookie present | «не чаще одного объяснения в 2 минуты» + countdown |
+| 429 | `rate-limited` | 20 calls already inside the hour (`explain_calls`) | «Не больше 20 объяснений в час» + countdown |
 | 503 | `not-configured` | `EXPLAIN_BASE_URL` / `EXPLAIN_API_KEY` / `EXPLAIN_MODEL` missing | «объяснения не настроены» |
 | 503 | `prompt-invalid` | prompt file missing, empty, or has unknown `{{placeholders}}` | the message, naming the file |
 | 502 | `upstream-error` | non-2xx from the model, unreadable body | «сервис объяснений ответил ошибкой» |
 | 504 | `timeout` | past `EXPLAIN_TIMEOUT_MS` | «сервис не ответил вовремя» |
 
-One log line per request — slug, paragraph, lemma, `cached`, status, `elapsedMs`. The key is never
-logged, never echoed in a response, and never sent to the client.
+One log line per request — slug, `source`, paragraph (or `-`), word, `cached`, status, `elapsedMs`. The
+key is never logged, never echoed in a response, and never sent to the client.
 
-## 5. Rate limit: the cookie
+## 5. Cookies: the rate limit and the session
 
 | Property | Value |
 | --- | --- |
-| Name | `explain_last` |
-| Value | unix milliseconds of the accepted request |
-| `Max-Age` | 120 |
+| Name | `explain_calls` |
+| Value | the unix milliseconds of the calls inside the window, `-`-separated, oldest first |
+| `Max-Age` | 3600 |
 | `Path` | `/read` |
 | `HttpOnly` | yes (the client has no business reading or forging it) |
 | `SameSite` | `Lax` |
@@ -181,15 +200,45 @@ logged, never echoed in a response, and never sent to the client.
 
 Rules:
 
-- cookie **absent** → run the call, then set the cookie on the response
-- cookie **present** → `429` with `Retry-After: ceil((value + 120000 − now) / 1000)`, cookie untouched
-  (so a spam of clicks cannot extend the window)
-- cookie **expires by itself** → the next request is accepted; no server-side state, no cleanup
+- the budget is **20 model calls per browser per hour** (`EXPLAIN_LIMIT` × `EXPLAIN_WINDOW_MS`); the
+  cookie is both the count and the clock, so the endpoint stays stateless
+- **fewer than 20 calls in the window** → run the call, then set the cookie to the calls still in the
+  window plus this one. Entries age out of the list as they leave the window, so the budget refills by
+  itself with no cleanup job and no server-side state
+- **20 already in the window** → `429` with `Retry-After: ceil((oldest + 3600000 − now) / 1000)`: the
+  moment the oldest call leaves the window, which is when a slot frees. The cookie is untouched, so a
+  spam of clicks cannot extend anything
+- **cookie absent or unparsable** → an empty budget: the next request is accepted
 - **cache hit** → neither checked nor set: the answer costs nothing, so it is not throttled
-- the value is used only to compute `Retry-After` and to log; it is not a trust boundary
+- **a call that fails upstream** (`502`, `504`) does not consume a slot: the reader got nothing, so the
+  cookie is left alone (measured: a `502` added no entry)
+- the value is used only to count calls and to compute `Retry-After`; it is not a trust boundary
+- the check sits **after** the etymology fetch and the cache read, because the fetched text is part of
+  the hash (§6, Q16) — so a refused click still costs one Wiktionary GET (measured 0.9 s against the
+  local server, of which the refusal itself is microseconds). The alternative is a lookup cache of its
+  own or a hash without the etymology, both rejected; a refusal that skipped the fetch would have to
+  know the cache key first, which is the thing the fetch produces
 
 This is a courtesy throttle per browser, not a quota: clearing cookies, a second browser or curl
 walks past it. Said out loud because pretending otherwise is worse than the limit.
+
+### The session cookie
+
+| Property | Value |
+| --- | --- |
+| Name | `explain_session` |
+| Value | unix milliseconds of the last accepted request |
+| `Max-Age` | 3600 |
+| `Path` | `/read` |
+| `HttpOnly` | **no** — the page reads it, and it holds a timestamp, not a secret |
+| `SameSite` | `Lax` |
+| `Secure` | yes when the request URL is https |
+
+Set on every 200, cache hit included: a reading session, and reading a cached answer is reading. It is
+the clock behind the panel history (§9, Q20) — an hour without a request means the session those panels
+belong to is over, and the next arrow press drops them. The panel on screen, an answer being read, is
+left alone: expiring the session must not take away what the reader is looking at. A reload starts with
+no panels, which is what "the history lives in the page" means; the cookie does not pretend otherwise.
 
 ## 6. Cache
 
@@ -261,7 +310,7 @@ rarest lemmas and most common words.
 - Any failure — timeout (`EXPLAIN_WIKTIONARY_TIMEOUT_MS`, default 4000), non-200, unparsable page —
   means «нет данных» and the prompt-only branch runs. The lookup never fails the request.
 - No lookup cache of its own: the fetched text is part of the rendered prompt, so the answer cache's
-  hash covers it, and the cookie already limits a miss to one fetch per 2 minutes.
+  hash covers it, and the budget bounds how many misses one browser can buy.
 - **Consequence, found while implementing (Q16)**: because the hash *is* the rendered prompt and the
   etymology is inside it, the lookup runs before the cache check — so a cache hit still costs one
   Wiktionary GET (measured ~0.4 s), and a Wiktionary outage changes the rendered prompt, which misses
@@ -380,12 +429,16 @@ consequence, not an accident.
 
 ## 9. Client behaviour
 
-- New component `ExplanationPane.svelte`, pure display: `{selection, explanation}` in, plus an `onclose`
-  callback out — the × is the only control it owns.
-- State in `read/[slug]/+page.svelte`: `{status: 'idle'|'loading'|'ready'|'error', request, word, lemma, grammar, meaning, etymology, example, parsed, message, retryUntil}`.
+- New component `ExplanationPane.svelte`, pure display: the answer in, plus `onclose` and `onask`
+  callbacks out. It owns three controls — the ×, the grammar chip and its popup, and every word of the
+  answer's prose — and no state beyond them, except the popup's open flag, which the page holds because
+  Escape is a layer stack there (§10, Q19).
+- State in `read/[slug]/+page.svelte`: `{status: 'idle'|'loading'|'ready'|'error', request: ExplainRequest, word, answer, openWord, message, retryUntil, history, cursor, tooltip}` — the page owns the
+  state machine, the components own their markup.
 - `explain(sel)` is called from the `onSelect` handler (an event, not an `$effect`) when
-  `sel.tokenIndex !== null`; it does nothing if the `(slug, paragraph, tokenIndex)` triple is the one
-  already on screen.
+  `sel.tokenIndex !== null`, and `askPane(word, sentence, field)` from the pane's own word controls; both
+  go through one `askWord(request, word, open)`, and both do nothing when the same request is already on
+  screen or in flight.
 - One `AbortController` and a monotonic request id: a new click aborts the old fetch, and a response
   whose id is not the latest is dropped — a slow answer can never overwrite a newer one.
 - **A second click replaces the answer in place** (Q12), and the previous answer is never cleared. It
@@ -422,8 +475,9 @@ consequence, not an accident.
 - **A refusal never takes the pane**, and with the swap on arrival it cannot: the pane is not rendered
   until there is an answer. While the article is showing, a 429, a 503 or a 5xx leaves the article
   alone and puts the message in the sentence pane, next to the word that was clicked — replacing the
-  text you are reading with «подождите 2 минуты» is worse than not answering. When the pane is already
-  open (a re-click), a failed re-click keeps the last answer, dimmed, with the message above it.
+  text you are reading with «не больше 20 объяснений в час» is worse than not answering. When the pane
+  is already open (a re-click), a failed re-click keeps the last answer, dimmed, with the message above
+  it.
 - Selection changes without a word (Tab, plain-text click) leave the explanation open, dimmed — it
   belongs to a word, not to the current sentence.
 - Accessibility: the explanation region is `aria-live="polite"` with `lang="ru"`, so arriving text is
@@ -443,13 +497,38 @@ consequence, not an accident.
 - The sentence in the sentence pane gets no tint of its own: the pane holds one sentence, so a tint
   would say nothing, and the sentence-level tint belongs to the article, which the answer is covering.
 - Staleness is derived, never stored, and it is a **sentence** comparison: the explanation pane owns
-  `openWord = {paragraph, sentence, tokenIndex}`; stale means the current selection is not that
-  sentence. Tab clears `Selection.tokenIndex`, so comparing `tokenIndex` would go stale on the first Tab
+  `openWord`, an article word's paragraph, sentence and index or a pane word's form and field; stale
+  means the current selection is not that sentence. Tab clears `Selection.tokenIndex`, so comparing
+  `tokenIndex` would go stale on the first Tab
   and never come back; comparing the sentence makes Tab away dim the body and Tab back restore it — and
   the word's wash returns with it, because `SentencePane` tints the button whose index equals
   `openWord.tokenIndex` whenever the selection shows that sentence. While stale the answer **body**
   dims to `0.55`; the header, the source line and the × keep full contrast, because a dimmed close
   button reads as disabled.
+- **A word of the answer is itself askable** (Q20): the pane's three fields are tokenised in the
+  browser (`src/lib/explain-text.ts`, with the pipeline's own word and sentence rules) and every
+  Cyrillic word becomes a `button.tok` wearing what the sentence pane's tokens wear. The click sends
+  `{source:'pane', word, sentence}` — the sentence the word sits in is the whole context there is — and
+  the answer replaces the panel in place, exactly as a re-click does. The clicked word wears
+  `--sentence` in the field it was clicked in, `aria-current="true"` included: the marking moves into
+  the pane because the word is not in the article and nothing else marks it.
+- `openWord` is a union for that reason: `{source:'article', paragraph, sentence, tokenIndex}` or
+  `{source:'pane', form, field}`. Staleness compares a sentence only for the article word — a pane word
+  has no selection to go stale against, so its panel dims only while a re-click is in flight or has
+  failed. `focusWord` and the sentence pane's wash apply to the article case alone.
+- A pane ask that fails lands **in the pane**, above the kept answer, and never in the sentence pane: a
+  pane word has no button in the article to hang the line off, so `note` is null for those requests and
+  the pane's own `.state` line carries the message and the countdown.
+- **← and → walk the session's panels** (Q20): `history: {request, answer, openWord}[]` with a cursor,
+  appended on every answer — a cached one included, because nothing is re-requested: a remembered panel
+  is put back from memory, so walking back and forth costs no request, no window and no waiting. Asking
+  after stepping back drops the panels ahead of the cursor, browser-style. With the pane closed, either
+  arrow brings back the panel it was closed on. Shift/⌘/⌃/⌥ plus an arrow is left to the browser, so
+  Shift+← still extends a selection in the text, and an arrow that walks no panel is not swallowed.
+- **The session's clock is the `explain_session` cookie** (§5): the page reads it before honouring an
+  arrow, and an hour without a request means the panels are dropped — the one on screen, an answer
+  being read, is left alone. The history lives in the page, so a reload starts with none: the cookie
+  decides the lifetime, not the storage.
 
 ## 10. Layout
 
@@ -531,15 +610,18 @@ Server, against a local stub provider (no key, no cost, deterministic):
 1. `EXPLAIN_BASE_URL=http://127.0.0.1:<port>/v1 EXPLAIN_API_KEY=x EXPLAIN_MODEL=stub
    EXPLAIN_CACHE_DIR=.cache/test` — the stub returns a fixed JSON answer and echoes the request it
    received.
-2. POST `{paragraph:57, tokenIndex:<пороговых>}` → 200, `Set-Cookie: explain_last=…; Max-Age=120;
-   HttpOnly; Path=/read`, `cached:false`; the stub's received prompt contains the word, the lemma,
-   the sentence and the translation from the JSON — asserted, not eyeballed.
+2. POST `{source:'article', paragraph:57, tokenIndex:<пороговых>}` → 200,
+   `Set-Cookie: explain_calls=<one timestamp>; Max-Age=3600; HttpOnly; Path=/read`, `cached:false`; the
+   stub's received prompt contains the word, the lemma, the sentence and the translation from the JSON
+   — asserted, not eyeballed.
 3. The answer is on disk: one `<sha1>.json` in `EXPLAIN_CACHE_DIR`, its `promptHash` equal to the
    `sha1` of the string the stub received plus the model line, and its `word` / `slug` / `paragraph`
    matching the request.
 4. Immediate second POST, same cookie, same word → 200 `cached:true`, no cookie set, and the stub
    received **no** second request — the cache is consulted before the window.
-5. Same cookie, a *different* word → 429 + `Retry-After` ≤ 120, and the stub received no request.
+5. Same cookie, a *different* word 19 more times → 19 calls; the 21st → 429 + `Retry-After` ≤ 3600 and
+   the stub received no 21st request. Forging the cookie with 20 fresh timestamps gives the same 429
+   without spending a call.
 6. Restart the server and repeat step 4 → still `cached:true`, no model call. The disk cache survives.
 7. Append a space to `prompts/word.md` → the word from step 2 makes a new call (`cached:false`) and a
    second file appears; revert the edit → the first file is used again, no call.
@@ -587,8 +669,8 @@ Browser (real Chromium, as the reader is verified today):
     selection, as it does today (layered Esc).
 15. With the explanation open, click another word in the sentence pane → the pane's content is
     replaced in place, with exactly one POST.
-16. Click «энергоносителей» immediately → the cooldown line appears next to the word, the pane does
-    **not** take over, no second request; wait out the window (or clear the cookie) → it works.
+16. Click «энергоносителей» with the budget spent (forge the cookie) → the refusal line appears next to
+    the word, the pane does **not** take over, no second request; clear the cookie → it works.
 17. Click a word already in the disk cache inside the window → it answers instantly, `cached:true`, no
     429 — the bypass is visible, not just documented.
 18. Tab stepping through sentences never sends a request (assert zero POSTs while stepping); the
@@ -647,13 +729,47 @@ Browser (real Chromium, as the reader is verified today):
     article (373 sentences). At 800×900 the popup's right edge sat at 522 px and it stayed 6 px under the
     chip across a 320 px window scroll.
 
+27. **Ran 2026-10-19**, after the request that the pane's own words be clickable: clicking «порядок»
+    inside the etymology of the «распорядилась» panel replaced the panel in 4858 ms with a cold model
+    call, its head reading «порядок | ×» — no lemma, no chip — with «порядок» alone wearing
+    `aria-current="true"` in the etymology field. «спрашиваю «порядок»…» appeared in the pane while the
+    request was in flight, and the source line read «по данным Викисловаря» with a link to
+    `…/wiki/порядок`, so the lookup of the *form* found a page. The cookies were `explain_session`
+    (`HttpOnly` false, `Path=/read`, expiry 3600 s out) and `explain_last`. ← put the previous panel
+    back («распорядилась → распорядиться», chip and all) and → returned to the pane word, both
+    instantly and with no request; Tab did not dim a pane-origin panel (opacity 1 before and after);
+    Esc closed it and ← from the closed article brought the panel back. A second pane word inside the
+    window was refused with «Не чаще одного объяснения в 2 минуты» **in the pane**, 0 status lines in
+    the sentence pane, the kept answer dimmed to 0.55, and the refused word added no history entry.
+28. **Ran 2026-10-19**, after the refactor that gave both origins one request path: a cached article
+    word («подрыву», ¶2) still opened from the disk cache with its lemma and its chip, Esc returned the
+    article at 373 sentences, and an uncached article word inside the window put «Не чаще одного
+    объяснения в 2 минуты» next to the word in the sentence pane with a countdown that ticked (29 → 27
+    over 2.5 s — the first reading used to be able to show a number above 120, because the countdown
+    state was from mount; fixed here). The history forked as designed: after ← ← → the panels read
+    «распорядилась», «распорядилась», «подрыву» — what was ahead of the cursor was dropped when the new
+    ask landed. `bun run check` 292 files / 0 errors / 0 warnings, `bun run build` clean. The refusals
+    quoted in items 27 and 28 read «Не чаще одного объяснения в 2 минуты» because that was the rule
+    that day; the message is now «Не больше 20 объяснений в час» (Q21).
+
+29. **Ran 2026-10-20**, after the budget replaced the cooldown. At the endpoint, with
+    `explain_calls` forged: 20 timestamps inside the hour → `429 {"error":"rate-limited","message":"Не
+    больше 20 объяснений в час","retryAfter":3521}` in 941 ms, with no model call; 19 inside the hour
+    plus one 61 minutes old → `200`, `cached:false`, `retryAfter:0`, a real call in 4251 ms, and a
+    `Set-Cookie` holding 20 entries — the aged one dropped, the new one appended, so the slot freed as
+    the arithmetic says. In the browser, the same forged cookie and a click on «отвечая» (¶1) put «Не
+    больше 20 объяснений в час» next to the word with «ещё 59 мин» after it, in 558 ms, with no pane
+    and the article still at 373 sentences. That 558 ms is the Wiktionary GET: the budget is checked
+    after the etymology, because the fetched text is part of the cache key (§5, Q16).
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
   the codes (Q19), not the word, and outside the sentence pane the words stay plain text.
 - No clickable words in the article text — removed 2026-10-19. The rare ranking stays in the JSON as
   data; nothing in the first pane is a control except the sentence itself.
-- No streaming (the answer is ~120 words; a spinner is enough), no per-user accounts or quotas, no
+- No streaming (the answer is ~120 words; a spinner is enough), no per-user accounts — the hourly
+  budget is a cookie in the reader's browser, not a quota on an account — no
   multi-provider abstraction. The disk cache is not a history: it is keyed by prompt hash, nothing in
   the UI lists it, and no prompt-version counter exists because the hash is the version.
 - No change to the generated article JSON or to the pipeline beyond the per-token `proper` flag (§10).
@@ -667,7 +783,7 @@ pointers.
 
 - **Q2 — answered**: every token in the sentence pane is clickable *except proper nouns*, which render
   italic in both panes and are not controls. Rule B and the per-token flag are in §2 and §10.
-- **Q3 — answered**: a cached answer bypasses the 2-minute cookie window, and the cache is on disk
+- **Q3 — answered**: a cached answer bypasses the hourly budget, and the cache is on disk
   keyed by the `sha1` of the request (§2, §6). Open: whether the hash covers the model and sampling
   parameters as well as the prompt (Q15).
 - **Q4 — answered**: the lemma (named next to the clicked form), raw pymorphy3 tags with a legend in
@@ -712,6 +828,18 @@ pointers.
 - **Q18 — answered** (user's report, 2026-10-19): the pipeline writes every token's own pymorphy3 tag
   and the prompt and the header use it, falling back to the rare entry's and then to «нет данных»; the
   header renders no chip when there is no tag. See §4, §7, §9.
+- **Q21 — answered** (user's call, 2026-10-20): the throttle is a **budget of 20 explanations per hour**
+  per browser, not one explanation every two minutes. The cookie had to change shape for it — it now
+  holds the timestamps of the calls inside the hour, and its `Max-Age` is that hour — and the wait a
+  refusal quotes is until the *oldest* call leaves the window, which is when a slot frees rather than a
+  fixed cooldown. Cache hits still bypass it (§5).
+- **Q20 — answered** (user's request, 2026-10-19): the answer's own words are clickable, ← and → walk
+  the panels of the reading session, and the session ends after an hour of inactivity. The three
+  decisions were the user's: a pane word is asked about with its form and its sentence only — the app
+  has no morphology at runtime and no JS port of pymorphy3 exists on npm, so the model names the initial
+  form itself and the header shows no chip; the history lives in the page with the `explain_session`
+  cookie as its clock, so a reload starts empty; and the clickable text is the three model fields, not
+  the Wiktionary quote. See §3, §4, §5, §9, §12.
 - **Q19 — answered** (user's request, 2026-10-19): the terse chip pops up a per-component gloss of its
   tag on hover and on focus, and dismissal is fourfold — pointer away, blur, a new answer, or Escape,
   which closes the popup before the answer, making the popup the top layer of the Escape stack. It is

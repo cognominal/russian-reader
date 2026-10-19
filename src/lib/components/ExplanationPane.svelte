@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { OpenWord, Selection } from '$lib/article';
 	import type { ExplainAnswer } from '$lib/explain';
+	import { paneRuns } from '$lib/explain-text';
+	import type { PaneField, PaneRun } from '$lib/explain-text';
 	import { tagParts } from '$lib/grammar';
 
 	/**
@@ -14,6 +16,7 @@
 		asking,
 		message,
 		onclose,
+		onask,
 		tooltip = $bindable(false)
 	}: {
 		selection: Selection | null;
@@ -25,6 +28,8 @@
 		/** The server's message after a failed re-click, shown above the kept answer. */
 		message: string | null;
 		onclose: () => void;
+		/** A word clicked in the pane's own prose: the form, its sentence, its field. */
+		onask: (word: string, sentence: string, field: PaneField) => void;
 		/**
 		 * Whether the grammar popup is up. The page owns it because Escape is a
 		 * layer stack there: while the popup is up, Escape closes it and not the
@@ -55,10 +60,44 @@
 	const dim = $derived(
 		asking !== null ||
 		message !== null ||
-		selection === null ||
-		selection.paragraph !== openWord.paragraph ||
-		selection.sentence !== openWord.sentence
+		// A pane word is not in the article, so no selection can invalidate it: the
+		// panel is about the pane's own prose, which Tab does not touch (Q20).
+		(openWord.source === 'article' &&
+			(selection === null ||
+				selection.paragraph !== openWord.paragraph ||
+				selection.sentence !== openWord.sentence))
 	);
+
+	const FIELDS: { name: PaneField; title: string }[] = [
+		{ name: 'meaning', title: 'Значение' },
+		{ name: 'etymology', title: 'Этимология' },
+		{ name: 'example', title: 'Пример' }
+	];
+
+	/**
+	 * The fields this answer has, tokenised once. The prose is the model's own, so
+	 * there are no offsets to slice: every Cyrillic word becomes a control, and the
+	 * sentence it sits in is the whole context the click can send (Q20). An answer
+	 * the model wrote as prose instead of JSON has `meaning` and nothing else.
+	 */
+	const fields = $derived.by(() => {
+		const text: Record<PaneField, string | null> = {
+			meaning: answer.meaning,
+			etymology: answer.etymology,
+			example: answer.example
+		};
+		const out: { name: PaneField; title: string; runs: PaneRun[] }[] = [];
+		for (const field of FIELDS) {
+			const body = text[field.name];
+			if (body !== null) out.push({ name: field.name, title: field.title, runs: paneRuns(body) });
+		}
+		return out;
+	});
+
+	/** The word this panel is about, when it was clicked in the pane's own prose. */
+	function isMarked(field: PaneField, run: PaneRun): boolean {
+		return openWord.source === 'pane' && openWord.field === field && openWord.form === run.text;
+	}
 
 	/**
 	 * The popup is anchored to the chip's box. `fixed` rather than `absolute`
@@ -98,8 +137,10 @@
 <div class="explain" tabindex="-1" aria-live="polite" lang="ru" bind:this={region}>
 	<div class="head">
 		<span class="word">{answer.word}</span>
-		<span class="arrow" aria-hidden="true">→</span>
-		<span class="lemma">{answer.lemma}</span>
+		{#if answer.lemma !== null}
+			<span class="arrow" aria-hidden="true">→</span>
+			<span class="lemma">{answer.lemma}</span>
+		{/if}
 		{#if answer.grammar !== null}
 			<!-- Terse by design: the popup is what makes the codes readable. A button,
 			     not a span, so the keyboard can reach it — it opens on hover and on
@@ -135,25 +176,19 @@
 		<p class="state">{message}</p>
 	{/if}
 
-	{#if answer.parsed}
-		<div class="body" class:dim={dim}>
+	<!-- One rendering for both shapes: an answer the model wrote as prose has
+	     `meaning` and nothing else, and that prose is a field like any other. -->
+	<div class="body" class:dim={dim}>
+		{#each fields as field (field.name)}
 			<section>
-				<h2>Значение</h2>
-				<p class="text">{answer.meaning}</p>
+				<h2>{field.title}</h2>
+				<!-- single line on purpose: no whitespace text nodes between the slices -->
+				<p class="text">{#each field.runs as run, k (k)}{#if run.sentence === ''}<span>{run.text}</span>{:else}<button type="button" class="tok" class:open={isMarked(field.name, run)} aria-current={isMarked(field.name, run) ? 'true' : undefined} onclick={() => onask(run.text, run.sentence, field.name)}>{run.text}</button>{/if}{/each}</p>
 			</section>
-			{#if answer.etymology !== null}
-				<section>
-					<h2>Этимология</h2>
-					<p class="text">{answer.etymology}</p>
-				</section>
-			{/if}
-			{#if answer.example !== null}
-				<section>
-					<h2>Пример</h2>
-					<p class="text">{answer.example}</p>
-				</section>
-			{/if}
-		</div>
+		{/each}
+	</div>
+
+	{#if answer.parsed}
 		<!-- A rewrite of a sourced etymology and a recollection are not the same
 		     claim, so the pane says which one this is — and, when there is a
 		     source, shows it. The model rewrites prose; it does not get to be the
@@ -168,14 +203,8 @@
 				</details>
 			{/if}
 			{#if answer.sourceUrl !== null}
-				<a class="source-link" href={answer.sourceUrl} target="_blank" rel="noreferrer">{answer.lemma} в Викисловаре</a>
+				<a class="source-link" href={answer.sourceUrl} target="_blank" rel="noreferrer">{answer.lemma ?? answer.word} в Викисловаре</a>
 			{/if}
-		</div>
-	{:else}
-		<!-- The model answered prose instead of the requested JSON: no fields to
-		     label, no etymology to attribute, and no answer thrown away. -->
-		<div class="body" class:dim={dim}>
-			<p class="text">{answer.meaning}</p>
 		</div>
 	{/if}
 </div>
@@ -312,6 +341,26 @@
 		line-height: 1.7;
 		/* model output is text: the fields keep the model's own line breaks */
 		white-space: pre-wrap;
+	}
+
+	/* The pane's own words are controls, and wear what the sentence pane's do */
+	.tok {
+		font: inherit;
+		color: inherit;
+		background: none;
+		border: 0;
+		padding: 0;
+		border-radius: 2px;
+		cursor: pointer;
+	}
+
+	.tok:hover {
+		background: var(--accent-soft);
+	}
+
+	.tok.open,
+	.tok.open:hover {
+		background: var(--sentence);
 	}
 
 	.source {

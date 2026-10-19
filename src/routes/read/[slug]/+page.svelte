@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { sentenceIndex } from '$lib/article';
-	import type { OpenWord, Selection } from '$lib/article';
+	import type { ArticleWord, OpenWord, Selection } from '$lib/article';
 	import type { PageProps } from './$types';
-	import { explainUrl } from '$lib/explain';
+	import { explainUrl, EXPLAIN_SESSION_COOKIE, EXPLAIN_SESSION_MS } from '$lib/explain';
 	import type { ExplainAnswer, ExplainError, ExplainRequest } from '$lib/explain';
+	import type { PaneField } from '$lib/explain-text';
 	import ExplanationPane from '$lib/components/ExplanationPane.svelte';
 	import RussianPane from '$lib/components/RussianPane.svelte';
 	import SentencePane from '$lib/components/SentencePane.svelte';
@@ -47,9 +48,24 @@
 	 *  Escape is a layer stack, and the popup is the topmost layer (Q19). */
 	let tooltip = $state(false);
 
+	/** One panel of this session: what was asked, what came back, which word it is about. */
+	type Entry = { request: ExplainRequest; answer: ExplainAnswer; openWord: OpenWord };
+
+	/**
+	 * The session's panels, in the order they were asked, and where the reader is in
+	 * them: ← and → walk them, and asking after stepping back drops what was ahead.
+	 * The session's clock is the cookie the endpoint refreshes on every ask — an hour
+	 * without one and the panels are gone (Q20).
+	 */
+	let history = $state<Entry[]>([]);
+	let cursor = $state(-1);
+
 	// «спрашиваю…» and every pre-answer failure report next to the clicked word.
 	const note = $derived.by(() => {
 		if (ask === null || status === 'idle' || status === 'ready') return null;
+		// A pane word has no button in the article to hang the line off: the pane's own
+		// state line carries it instead (Q20).
+		if (ask.request.source !== 'article') return null;
 		return {
 			paragraph: ask.request.paragraph,
 			tokenIndex: ask.request.tokenIndex,
@@ -78,6 +94,18 @@
 	 * chosen this way pins no word.
 	 */
 	function onKeydown(event: KeyboardEvent) {
+		if (
+			(event.key === 'ArrowLeft' || event.key === 'ArrowRight') &&
+			!event.shiftKey &&
+			!event.ctrlKey &&
+			!event.altKey &&
+			!event.metaKey
+		) {
+			// Shift is left alone so the arrows still extend a selection in the text,
+			// and a key that walks no panel is left to the browser.
+			if (step(event.key === 'ArrowLeft' ? -1 : 1)) event.preventDefault();
+			return;
+		}
 		if (event.key === 'Escape') {
 			if (tooltip) tooltip = false;
 			else if (answer !== null) void close();
@@ -104,33 +132,76 @@
 	}
 
 	/** The clicked form, straight from the article the endpoint re-derives from. */
-	function formOf(request: ExplainRequest): string | null {
+	function formOf(request: { paragraph: number; tokenIndex: number }): string | null {
 		const paragraph = data.article.paragraphs.find((p) => p.i === request.paragraph);
 		const token = paragraph?.ruTokens[request.tokenIndex];
 		return token === undefined ? null : token.form;
 	}
 
-	/**
-	 * Ask about one word. The pane is not touched here: it opens when an answer
-	 * arrives, so every failure before there is one stays next to the word.
-	 */
+	/** A word of the article: the sentence pane's own click. */
 	async function explain(sel: Selection) {
 		const { paragraph, tokenIndex, sentence } = sel;
 		if (tokenIndex === null || sentence === null) return;
 
+		const request = { source: 'article' as const, paragraph, tokenIndex };
 		// The same word again: its answer is on screen, or it is already in flight.
-		const same = ask !== null && ask.request.paragraph === paragraph && ask.request.tokenIndex === tokenIndex;
-		if (status === 'loading' && same) return;
-		if (openWord !== null && openWord.paragraph === paragraph && openWord.tokenIndex === tokenIndex) return;
+		if (status === 'loading' && ask !== null && sameAsk(ask.request, request)) return;
+		if (
+			openWord !== null &&
+			openWord.source === 'article' &&
+			openWord.paragraph === paragraph &&
+			openWord.tokenIndex === tokenIndex
+		) {
+			return;
+		}
 
-		const word = formOf({ paragraph, tokenIndex });
+		const word = formOf(request);
 		if (word === null) return;
+		await askWord(request, word, { source: 'article', paragraph, sentence, tokenIndex });
+	}
 
+	/**
+	 * A word of the explanation pane's own prose. There is no lemma and no tag for
+	 * it — the app has no morphology at runtime — so the sentence it sits in is the
+	 * whole request, and the model is asked for the initial form itself (Q20).
+	 */
+	async function askPane(word: string, sentence: string, field: PaneField) {
+		const request = { source: 'pane' as const, word, sentence };
+		if (status === 'loading' && ask !== null && sameAsk(ask.request, request)) return;
+		if (
+			openWord !== null &&
+			openWord.source === 'pane' &&
+			openWord.form === word &&
+			openWord.field === field
+		) {
+			return;
+		}
+		await askWord(request, word, { source: 'pane', form: word, field });
+	}
+
+	function sameAsk(a: ExplainRequest, b: ExplainRequest): boolean {
+		if (a.source === 'article' && b.source === 'article') {
+			return a.paragraph === b.paragraph && a.tokenIndex === b.tokenIndex;
+		}
+		if (a.source === 'pane' && b.source === 'pane') {
+			return a.word === b.word && a.sentence === b.sentence;
+		}
+		return false;
+	}
+
+	/**
+	 * One ask, whichever pane it came from. The pane is not touched here: it opens
+	 * when an answer arrives, so every failure before there is one stays next to the
+	 * word that was clicked — in the sentence pane for a word of the article, in the
+	 * explanation pane itself for a word of its own prose, which has no button in the
+	 * article to hang a line off.
+	 */
+	async function askWord(request: ExplainRequest, word: string, open: OpenWord) {
 		controller?.abort();
 		const id = (requestId += 1);
 		const ctl = new AbortController();
 		controller = ctl;
-		ask = { request: { paragraph, tokenIndex }, word };
+		ask = { request, word };
 		status = 'loading';
 		message = null;
 
@@ -138,7 +209,7 @@
 			const response = await fetch(explainUrl(data.article.slug), {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ paragraph, tokenIndex } satisfies ExplainRequest),
+				body: JSON.stringify(request satisfies ExplainRequest),
 				signal: ctl.signal
 			});
 			if (id !== requestId) return;
@@ -160,16 +231,66 @@
 			// itself is scrolled in its place.
 			if (answer === null) savedScroll = pane?.scrollTop ?? 0;
 			answer = body;
-			openWord = { paragraph, sentence, tokenIndex };
+			openWord = open;
 			status = 'ready';
 			message = null;
 			retryUntil = Date.now() + body.retryAfter * 1000;
+			remember({ request, answer: body, openWord: open });
 		} catch {
 			// an aborted fetch is the reader's next click, not a failure
 			if (ctl.signal.aborted || id !== requestId) return;
 			status = 'error';
 			message = 'Сервис объяснений не ответил.';
 		}
+	}
+
+	/** A new panel goes at the end of the session; asking after stepping back forks it. */
+	function remember(entry: Entry) {
+		if (cursor < history.length - 1) history = history.slice(0, cursor + 1);
+		history.push(entry);
+		cursor = history.length - 1;
+	}
+
+	/** The session's clock: the timestamp the endpoint refreshed on the last ask. */
+	function sessionAlive(): boolean {
+		const prefix = `${EXPLAIN_SESSION_COOKIE}=`;
+		const raw = document.cookie.split('; ').find((cookie) => cookie.startsWith(prefix));
+		if (raw === undefined) return false;
+		const at = Number(raw.slice(prefix.length));
+		return Number.isFinite(at) && Date.now() - at < EXPLAIN_SESSION_MS;
+	}
+
+	/** ← and → walk the session's panels. A remembered answer is never re-asked. */
+	function step(direction: -1 | 1): boolean {
+		if (history.length === 0) return false;
+		if (!sessionAlive()) {
+			// An hour of silence ended the session: the panels are dropped, and the one
+			// on screen — an answer being read — is left alone.
+			history = [];
+			cursor = -1;
+			return false;
+		}
+		// With the pane closed, either arrow brings back the panel it was closed on.
+		const next = answer === null ? cursor : cursor + direction;
+		if (next < 0 || next >= history.length) return false;
+		if (answer !== null && next === cursor) return false;
+		cursor = next;
+		show(history[next]);
+		return true;
+	}
+
+	/** Put a remembered panel back on screen: no request, no window, no waiting. */
+	function show(entry: Entry) {
+		controller?.abort();
+		controller = null;
+		requestId += 1;
+		if (answer === null) savedScroll = pane?.scrollTop ?? 0;
+		answer = entry.answer;
+		openWord = entry.openWord;
+		ask = null;
+		status = 'ready';
+		message = null;
+		retryUntil = null;
 	}
 
 	/** The server's Russian message and its retry window, or a line of our own. */
@@ -207,14 +328,15 @@
 		await tick();
 		restoreScroll();
 		requestAnimationFrame(restoreScroll);
-		if (word !== null) focusWord(word);
+		// A pane word has no button in the article to return to (Q20).
+		if (word !== null && word.source === 'article') focusWord(word);
 	}
 
 	function restoreScroll() {
 		if (pane !== null) pane.scrollTop = savedScroll;
 	}
 
-	function focusWord(word: OpenWord) {
+	function focusWord(word: ArticleWord) {
 		// The line carries the paragraph, the token button only its index: the same
 		// index exists in every paragraph.
 		const line = document.querySelector<HTMLElement>(`.line[data-para="${word.paragraph}"]`);
@@ -237,7 +359,7 @@
 		bind:this={pane}
 	>
 		{#if answer !== null && openWord !== null}
-			<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} bind:tooltip />
+			<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} onask={askPane} bind:tooltip />
 		{:else}
 			<RussianPane article={data.article} {selection} onSelect={select} />
 		{/if}
