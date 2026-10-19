@@ -274,8 +274,10 @@ rarest lemmas and most common words.
 - The **lemma** is looked up, not the clicked form: «пороговых» → «пороговый», a stub, while «порог» is
   rich. A base-word fallback would be a real improvement; it is a non-goal for now, and this is where it
   would go.
-- Licensing: Wiktionary text is CC BY-SA. Fine for a personal POC with the «по данным Викисловаря»
-  line; a public deployment needs a real attribution decision.
+- Licensing: Wiktionary text is CC BY-SA, and the pane credits it and links the page it came from
+  (Q17), which is the attribution that licence asks for. The repo's `LICENSE` covers the code and the
+  documentation only: the article texts are kremlin.ru's, and the tag table in `src/lib/grammar.ts`
+  stays CC BY-SA, from OpenCorpora.
 
 - Initial content of `prompts/word.md` (to be edited, this is the draft to grill):
 

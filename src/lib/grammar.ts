@@ -8,6 +8,10 @@
  * happen to occur in today's two articles. Where the dictionary's name is itself
  * jargon or a Latin term (`Sgtm`, `Subx`), the gloss says what the form *is* —
  * this is UI copy for a learner, not a mirror of the dictionary.
+ *
+ * Those names come from OpenCorpora (http://opencorpora.org, CC BY-SA) through
+ * pymorphy3-dicts (MIT), so this table is the one thing in the repository the
+ * MIT `LICENSE` does not cover — see that file for the credit.
  */
 const GLOSS: Record<string, string> = {
 	// parts of speech
