@@ -1,0 +1,44 @@
+[
+ {
+  "slug": "66181",
+  "title": {
+   "ru": "Статья Владимира Путина «Об историческом единстве русских и украинцев»",
+   "en": "Article by Vladimir Putin ”On the Historical Unity of Russians and Ukrainians“"
+  },
+  "date": "2021-07-12T17:00+03:00",
+  "stats": {
+   "paragraphs": 88,
+   "unalignedParagraphs": 13,
+   "unmatchedSentences": 0,
+   "unmatchedEnSentences": 0,
+   "meanAlignCost": 0.112,
+   "ruSentences": 373,
+   "enSentences": 360,
+   "ruTokens": 5238,
+   "ruLemmas": 1805,
+   "rareLemmas": 200,
+   "rareTokens": 233
+  }
+ },
+ {
+  "slug": "24034",
+  "title": {
+   "ru": "Выступление и дискуссия на Мюнхенской конференции по вопросам политики безопасности",
+   "en": "Speech and the Following Discussion at the Munich Conference on Security Policy"
+  },
+  "date": "2007-02-10T17:37+03:00",
+  "stats": {
+   "paragraphs": 135,
+   "unalignedParagraphs": 28,
+   "unmatchedSentences": 0,
+   "unmatchedEnSentences": 0,
+   "meanAlignCost": 0.115,
+   "ruSentences": 556,
+   "enSentences": 570,
+   "ruTokens": 7254,
+   "ruLemmas": 1672,
+   "rareLemmas": 200,
+   "rareTokens": 264
+  }
+ }
+]

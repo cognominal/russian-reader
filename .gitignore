@@ -1,0 +1,11 @@
+node_modules/
+.svelte-kit/
+build/
+.DS_Store
+*.local
+.venv/
+.env
+.cache/
+scripts/out/
+data/wordlists/
+__pycache__/
