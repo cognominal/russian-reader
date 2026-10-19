@@ -572,8 +572,10 @@ consequence, not an accident.
 - The popup is not interactive, so dismissal needs no grace period: it goes when the pointer leaves the
   chip, on blur, when a new answer arrives (the tag it explained is gone), and on Escape — which is why
   the popup is the **first** layer of the page's Escape stack, above the answer (Q19).
-- The word controls are `button.tok`: `--sentence` wash while one is the open word, `--accent-soft` on
-  hover, `border-radius: 2px`, and no custom focus style — the default ring is what the article's
+- The word controls are `button.tok`: **nothing at rest** — the answer is prose until the pointer is on
+  a word, which is the only moment the click is available, so a field never reads as a wall of chips
+  (the user's call, 2026-10-20) — `--accent-soft` on hover, `--sentence` wash while one is the open
+  word, `border-radius: 2px`, and no custom focus style — the default ring is what the article's
   sentence buttons already use.
 - Narrow screens (≤ 899 px) — **not implemented, Q10**: the reader stacks and the article pane
   sits *below* the sticky 60vh right column, so a swap in place would put the answer off-screen under
@@ -741,6 +743,9 @@ Browser (real Chromium, as the reader is verified today):
     Esc closed it and ← from the closed article brought the panel back. A second pane word inside the
     window was refused with «Не чаще одного объяснения в 2 минуты» **in the pane**, 0 status lines in
     the sentence pane, the kept answer dimmed to 0.55, and the refused word added no history entry.
+    All 81 word controls of that pane computed to `rgba(0, 0, 0, 0)` with no padding and no border at
+    rest, took `--accent-soft` under the pointer and gave it back on pointer leave: the fields read as
+    prose until hovered, which is what makes a mark legible when one is there.
 28. **Ran 2026-10-19**, after the refactor that gave both origins one request path: a cached article
     word («подрыву», ¶2) still opened from the disk cache with its lemma and its chip, Esc returned the
     article at 373 sentences, and an uncached article word inside the window put «Не чаще одного
