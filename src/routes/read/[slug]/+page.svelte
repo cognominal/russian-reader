@@ -361,7 +361,7 @@
 		{#if answer !== null && openWord !== null}
 			<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} onask={askPane} bind:tooltip />
 		{:else}
-			<RussianPane article={data.article} {selection} onSelect={select} />
+			<RussianPane article={data.article} others={data.others} {selection} onSelect={select} />
 		{/if}
 	</section>
 	<aside class="pane pane-en" aria-label="English translation">

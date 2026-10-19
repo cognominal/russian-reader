@@ -544,6 +544,13 @@ consequence, not an accident.
   ↑ section.pane-ru while an explanation is open; the article comes back on close
 ```
 
+- The reader's own way to another text (Q22): the article header carries one muted line under its meta
+  line — «Другие тексты:» and then every catalog entry but this one, title linked, date after it, a
+  middot between entries — so a second text is one click away instead of a URL edit. The catalog comes
+  from `loadCatalog()` in `src/lib/server/catalog.ts`, which the index's loader reads too, so the two
+  cannot disagree about which texts exist; the globs live under `$lib/server` so a client import cannot
+  pull whole articles into the browser bundle. The line lives inside the article pane, so it goes when
+  an explanation replaces it — accepted: nobody switches texts mid-answer.
 - `section.pane-ru` is the swap point: `<RussianPane>` normally, `<ExplanationPane>` while an
   explanation is open. The pane keeps its `overflow-y: auto`, so the answer scrolls in the same
   container the article did; the × lives in a header row that is `position: sticky; top: 0` inside
@@ -767,6 +774,14 @@ Browser (real Chromium, as the reader is verified today):
     and the article still at 373 sentences. That 558 ms is the Wiktionary GET: the budget is checked
     after the etymology, because the fetched text is part of the cache key (§5, Q16).
 
+30. **Ran 2026-10-20**, for the text switcher (Q22): `/read/66181` served exactly one link,
+    `/read/24034`, under «Другие тексты: Выступление и дискуссия на Мюнхенской конференции по вопросам
+    политики безопасности 10 февраля 2007»; clicking it landed on `/read/24034` — h1 the Munich speech,
+    135 paragraphs — whose header offered the essay back, and `/read/24034` served no link to itself.
+    The line computed to 14.4 px in `--fg-muted`, 32 px tall at 720 px wide (the official titles wrap to
+    two lines), 16 px above the legend; it is gone while an answer is open and back after Esc. The index
+    still lists both texts, through the same catalog function.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -845,6 +860,11 @@ pointers.
   form itself and the header shows no chip; the history lives in the page with the `explain_session`
   cookie as its clock, so a reload starts empty; and the clickable text is the three model fields, not
   the Wiktionary quote. See §3, §4, §5, §9, §12.
+- **Q22 — answered** (user's question, 2026-10-20, "how can I switch between the proposed texts"): the
+  reader had no way back to the catalog — not one `href`, and the title only inside the article pane —
+  so the article header now lists the other texts, by title and date, one click each. The user chose
+  the header over the right column and over a floating control, and direct links over a link to the
+  index; the accepted cost is that the line goes when an explanation takes the pane. See §10.
 - **Q19 — answered** (user's request, 2026-10-19): the terse chip pops up a per-component gloss of its
   tag on hover and on focus, and dismissal is fourfold — pointer away, blur, a new answer, or Escape,
   which closes the popup before the answer, making the popup the top layer of the Escape stack. It is
