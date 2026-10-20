@@ -53,7 +53,8 @@ _Avoid_: scrape, extraction, raw page
 
 **Menubar**:
 The row above the panes: «Тексты», the menu of the other texts, and «Слова», the menu of the session's
-explanations — greyed out and inert while the session has none.
+explanations — greyed out and inert while the session has none — and, at its far end, the link to the
+reader's source on GitHub.
 _Avoid_: toolbar, navbar, top bar, header
 
 **Article pane**:

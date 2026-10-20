@@ -606,6 +606,11 @@ consequence, not an accident.
   `disabled` — greyed out, no click, `title` saying why — until an answer has arrived, and picking a row
   is what an arrow does: `show()` from memory, no request, no window. An expired session empties it on
   the pick instead of opening a ghost panel.
+- The far right of the bar is the way out of the reader: the GitHub mark, an 18 px icon drawn in
+  `currentColor` and muted until hovered, `margin-left: auto`, linking to the repository in a new tab
+  (`target="_blank"` + `rel="noopener noreferrer"`). It carries the name it cannot show —
+  `aria-label` and `title`, «Исходный код на GitHub» — because a `svg` with no text names nothing, and
+  it is the only link on the page that leaves the app.
 - The bar is a row of a column flex frame (`.app`), so the two columns take what is left of the
   viewport; at ≤ 899 px the frame is as tall as its content, the bar sticks to the top and the
   translation column sticks directly under it, at the height the bar measures itself (`--menubar-h`),
@@ -1032,7 +1037,10 @@ pointers.
   that the bar **replaces** the article header's «Другие тексты:» line (Q22's answer, withdrawn: that
   line went away whenever an explanation took the article pane, which a menubar does not), and chose
   Russian labels — «Тексты» / «Слова» — against the reader's Russian chrome. Greyed out means
-  `disabled`: no click, no focus, a `title` saying «Ни одного объяснения пока нет». See §9, §10, §12.
+  `disabled`: no click, no focus, a `title` saying «Ни одного объяснения пока нет». Later the same day
+  the user asked for the repository link at the bar's right end, so the bar ends in the GitHub mark
+  (§10); it is a plain link — no state, no key — and the label question is answered by `aria-label`
+  rather than by visible text. See §9, §10, §12.
 - **Q25 — answered** (user's report, 2026-10-20, «some problem. Should not happen, the wifi is up.
   Anyway the message should be in red»): the line was the client's own «Сервис объяснений не ответил.»,
   which is what a `fetch` that never reached the endpoint produces — a stopped or restarted server, or a

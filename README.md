@@ -125,7 +125,8 @@ each — and «Слова» lists the explanations this reading session has, nam
 and the paragraph it came from; picking one puts that panel back with no request. «Слова» is greyed out
 and takes no click until the first answer arrives, and greys out again when an hour without a request
 ends the session and drops its panels. ↓ and ↑ walk an open menu's rows, Escape closes it and hands the
-focus back to its button, and a `Tab` step closes it before it moves.
+focus back to its button, and a `Tab` step closes it before it moves. At the far right of the bar sits
+the GitHub mark, linking to the reader's source in a new tab.
 
 ## Word explanation
 
