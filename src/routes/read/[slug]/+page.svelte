@@ -48,8 +48,18 @@
 	 *  Escape is a layer stack, and the popup is the topmost layer (Q19). */
 	let tooltip = $state(false);
 
-	/** One panel of this session: what was asked, what came back, which word it is about. */
-	type Entry = { request: ExplainRequest; answer: ExplainAnswer; openWord: OpenWord };
+	/**
+	 * One panel of this session: what was asked, what came back, which word it is
+	 * about, and the pair the right column was on when it was asked for — walking
+	 * back to a panel puts the two right-hand panes back where they were, so the
+	 * explained word is highlighted again (Q23).
+	 */
+	type Entry = {
+		request: ExplainRequest;
+		answer: ExplainAnswer;
+		openWord: OpenWord;
+		selection: Selection | null;
+	};
 
 	/**
 	 * The session's panels, in the order they were asked, and where the reader is in
@@ -204,6 +214,12 @@
 		ask = { request, word };
 		status = 'loading';
 		message = null;
+		// The pair this panel belongs to, taken now: for a word of the article the
+		// click has just set it to that word's sentence, and for a word of the
+		// explanation it is the article sentence the reader left on screen. Read
+		// here, not after the answer, so a Tab during the request cannot move the
+		// panel's own context out from under it.
+		const context = selection;
 
 		try {
 			const response = await fetch(explainUrl(data.article.slug), {
@@ -235,7 +251,7 @@
 			status = 'ready';
 			message = null;
 			retryUntil = Date.now() + body.retryAfter * 1000;
-			remember({ request, answer: body, openWord: open });
+			remember({ request, answer: body, openWord: open, selection: context });
 		} catch {
 			// an aborted fetch is the reader's next click, not a failure
 			if (ctl.signal.aborted || id !== requestId) return;
@@ -279,7 +295,12 @@
 		return true;
 	}
 
-	/** Put a remembered panel back on screen: no request, no window, no waiting. */
+	/**
+	 * Put a remembered panel back on screen: no request, no window, no waiting, and
+	 * with the pair it was asked about — the sentence pane and the paragraph pane
+	 * follow the selection, so restoring it restores both, the mark on the word
+	 * included, and the dim the reader saw when the selection had moved on.
+	 */
 	function show(entry: Entry) {
 		controller?.abort();
 		controller = null;
@@ -287,6 +308,7 @@
 		if (answer === null) savedScroll = pane?.scrollTop ?? 0;
 		answer = entry.answer;
 		openWord = entry.openWord;
+		selection = entry.selection;
 		ask = null;
 		status = 'ready';
 		message = null;

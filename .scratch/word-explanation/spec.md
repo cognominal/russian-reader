@@ -433,7 +433,7 @@ consequence, not an accident.
   callbacks out. It owns three controls — the ×, the grammar chip and its popup, and every word of the
   answer's prose — and no state beyond them, except the popup's open flag, which the page holds because
   Escape is a layer stack there (§10, Q19).
-- State in `read/[slug]/+page.svelte`: `{status: 'idle'|'loading'|'ready'|'error', request: ExplainRequest, word, answer, openWord, message, retryUntil, history, cursor, tooltip}` — the page owns the
+- State in `read/[slug]/+page.svelte`: `{status: 'idle'|'loading'|'ready'|'error', request: ExplainRequest, word, answer, openWord, selection, message, retryUntil, history, cursor, tooltip}` — the page owns the
   state machine, the components own their markup.
 - `explain(sel)` is called from the `onSelect` handler (an event, not an `$effect`) when
   `sel.tokenIndex !== null`, and `askPane(word, sentence, field)` from the pane's own word controls; both
@@ -519,12 +519,18 @@ consequence, not an accident.
 - A pane ask that fails lands **in the pane**, above the kept answer, and never in the sentence pane: a
   pane word has no button in the article to hang the line off, so `note` is null for those requests and
   the pane's own `.state` line carries the message and the countdown.
-- **← and → walk the session's panels** (Q20): `history: {request, answer, openWord}[]` with a cursor,
-  appended on every answer — a cached one included, because nothing is re-requested: a remembered panel
-  is put back from memory, so walking back and forth costs no request, no window and no waiting. Asking
-  after stepping back drops the panels ahead of the cursor, browser-style. With the pane closed, either
-  arrow brings back the panel it was closed on. Shift/⌘/⌃/⌥ plus an arrow is left to the browser, so
-  Shift+← still extends a selection in the text, and an arrow that walks no panel is not swallowed.
+- **← and → walk the session's panels** (Q20): `history: {request, answer, openWord, selection}[]` with a
+  cursor, appended on every answer — a cached one included, because nothing is re-requested: a remembered
+  panel is put back from memory, so walking back and forth costs no request, no window and no waiting.
+  Each panel carries the pair the right column was on when it was asked for (Q23) — for a word of the
+  article the click has just set it to that word's sentence, for a word of the explanation the sentence
+  the reader had left there — and putting a panel back restores it, so the sentence pane and the
+  paragraph pane follow, the explained word wears its mark again, and the dim matches the state the
+  panel was displayed in. The pair is read at the ask, not when the answer lands, so a Tab during a
+  request cannot move the panel's own context out from under it. Asking after stepping back drops the
+  panels ahead of the cursor, browser-style. With the pane closed, either arrow brings back the panel it
+  was closed on. Shift/⌘/⌃/⌥ plus an arrow is left to the browser, so Shift+← still extends a selection
+  in the text, and an arrow that walks no panel is not swallowed.
 - **The session's clock is the `explain_session` cookie** (§5): the page reads it before honouring an
   arrow, and an hour without a request means the panels are dropped — the one on screen, an answer
   being read, is left alone. The history lives in the page, so a reload starts with none: the cookie
@@ -782,6 +788,14 @@ Browser (real Chromium, as the reader is verified today):
     two lines), 16 px above the legend; it is gone while an answer is open and back after Esc. The index
     still lists both texts, through the same catalog function.
 
+31. **Ran 2026-10-20**, after the user reported that walking did not put the right column back: with
+    ¶20 s1 selected and «дворянское» answered (panel A), a Tab moved the pair to ¶20 s2 and dimmed the
+    answer; a pane word clicked in that answer («Дворянское», panel B) left the pair on s2. ← put A back
+    with the sentence pane on **¶20 s1** and «дворянское» marked again, its dim gone; → put B back with
+    the pane word marked in the answer's own prose and the pair on s2, which is where B was asked from;
+    ← twice from A moved nothing, so the key stayed with the browser. Before the fix the same walk put A
+    back with the sentence pane still on s2 and no word marked.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -865,6 +879,11 @@ pointers.
   so the article header now lists the other texts, by title and date, one click each. The user chose
   the header over the right column and over a floating control, and direct links over a link to the
   index; the accepted cost is that the line goes when an explanation takes the pane. See §10.
+- **Q23 — answered** (user's report, 2026-10-20): a panel remembers the pair the right column was on when
+  it was asked for, and walking to that panel restores it — so the sentence pane and the paragraph pane
+  come back with the panel, with the explained word highlighted again and the dim matching. The pair is
+  read at the ask rather than when the answer lands, so a Tab during a request cannot move the panel's
+  own context out from under it. See §9, §12.
 - **Q19 — answered** (user's request, 2026-10-19): the terse chip pops up a per-component gloss of its
   tag on hover and on focus, and dismissal is fourfold — pointer away, blur, a new answer, or Escape,
   which closes the popup before the answer, making the popup the top layer of the Escape stack. It is
