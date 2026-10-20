@@ -6,6 +6,7 @@
 	import type { ExplainAnswer, ExplainError, ExplainRequest } from '$lib/explain';
 	import type { PaneField } from '$lib/explain-text';
 	import ExplanationPane from '$lib/components/ExplanationPane.svelte';
+	import OriginPane from '$lib/components/OriginPane.svelte';
 	import RussianPane from '$lib/components/RussianPane.svelte';
 	import SentencePane from '$lib/components/SentencePane.svelte';
 	import TranslationPane from '$lib/components/TranslationPane.svelte';
@@ -26,6 +27,14 @@
 	/** The answer on screen, and the word it is about. Null means the article shows. */
 	let answer = $state<ExplainAnswer | null>(null);
 	let openWord = $state<OpenWord | null>(null);
+	/**
+	 * The panel the answer on screen was taken from, when its word was clicked in
+	 * another explanation: the paragraph pane shows that panel instead of the
+	 * article's paragraph, which is no context for it (Q24). The third property of
+	 * the panel on screen, beside `answer` and `openWord` — so it survives the
+	 * session's panels being dropped, the way the panel itself does.
+	 */
+	let originOf = $state<ExplainAnswer | null>(null);
 
 	/** The request that is in flight or has failed. */
 	let ask = $state<Ask | null>(null);
@@ -59,6 +68,8 @@
 		answer: ExplainAnswer;
 		openWord: OpenWord;
 		selection: Selection | null;
+		/** For a word taken from an explanation: the panel it was taken from (Q24). */
+		origin: ExplainAnswer | null;
 	};
 
 	/**
@@ -89,6 +100,21 @@
 	// keeps the message if the new request fails (Q12, §11).
 	const asking = $derived(status === 'loading' && answer !== null ? (ask?.word ?? null) : null);
 	const failure = $derived(status === 'error' && answer !== null ? message : null);
+
+	/**
+	 * The panel the paragraph pane shows, when the answer on screen came out of
+	 * another explanation: that explanation, scrolled to the word that was clicked
+	 * in it (Q24). Null whenever the article's paragraph is the right context —
+	 * the pane is closed, or the word came from the article itself.
+	 */
+	const origin = $derived(answer === null ? null : originOf);
+
+	/** The word that was clicked in that panel: the one its copy washes. */
+	const originMark = $derived(
+		openWord !== null && openWord.source === 'pane'
+			? { field: openWord.field, form: openWord.form }
+			: null
+	);
 
 	function position(sel: Selection | null): number {
 		if (sel === null || sel.sentence === null) return -1;
@@ -220,6 +246,9 @@
 		// here, not after the answer, so a Tab during the request cannot move the
 		// panel's own context out from under it.
 		const context = selection;
+		// A word taken out of an explanation is taken out of a panel: that panel is
+		// what the paragraph pane shows while its explanation is read (Q24).
+		const from = request.source === 'pane' ? answer : null;
 
 		try {
 			const response = await fetch(explainUrl(data.article.slug), {
@@ -248,10 +277,11 @@
 			if (answer === null) savedScroll = pane?.scrollTop ?? 0;
 			answer = body;
 			openWord = open;
+			originOf = from;
 			status = 'ready';
 			message = null;
 			retryUntil = Date.now() + body.retryAfter * 1000;
-			remember({ request, answer: body, openWord: open, selection: context });
+			remember({ request, answer: body, openWord: open, selection: context, origin: from });
 		} catch {
 			// an aborted fetch is the reader's next click, not a failure
 			if (ctl.signal.aborted || id !== requestId) return;
@@ -308,6 +338,9 @@
 		if (answer === null) savedScroll = pane?.scrollTop ?? 0;
 		answer = entry.answer;
 		openWord = entry.openWord;
+		// A panel brings the panel it was taken from with it, or nothing when its
+		// word was the article's own — `origin` is set at the ask, once (Q24).
+		originOf = entry.origin;
 		selection = entry.selection;
 		ask = null;
 		status = 'ready';
@@ -339,6 +372,7 @@
 		requestId += 1;
 		answer = null;
 		openWord = null;
+		originOf = null;
 		ask = null;
 		status = 'idle';
 		message = null;
@@ -386,9 +420,13 @@
 			<RussianPane article={data.article} others={data.others} {selection} onSelect={select} />
 		{/if}
 	</section>
-	<aside class="pane pane-en" aria-label="English translation">
+	<aside class="pane pane-en" aria-label={origin === null ? 'English translation' : 'Откуда слово'}>
 		<div class="en-para">
-			<TranslationPane article={data.article} {selection} />
+			{#if origin === null}
+				<TranslationPane article={data.article} {selection} />
+			{:else}
+				<OriginPane answer={origin} mark={originMark} />
+			{/if}
 		</div>
 		<div class="en-sentence">
 			<SentencePane article={data.article} {selection} onSelect={select} {openWord} {note} />

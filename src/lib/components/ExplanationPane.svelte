@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { OpenWord, Selection } from '$lib/article';
 	import type { ExplainAnswer } from '$lib/explain';
-	import { paneRuns } from '$lib/explain-text';
-	import type { PaneField, PaneRun } from '$lib/explain-text';
+	import type { PaneField } from '$lib/explain-text';
 	import { tagParts } from '$lib/grammar';
+	import AnswerBody from './AnswerBody.svelte';
 
 	/**
 	 * Pure display: it renders the answer it is given and owns one control, the ×.
@@ -68,36 +68,10 @@
 				selection.sentence !== openWord.sentence))
 	);
 
-	const FIELDS: { name: PaneField; title: string }[] = [
-		{ name: 'meaning', title: 'Значение' },
-		{ name: 'etymology', title: 'Этимология' },
-		{ name: 'example', title: 'Пример' }
-	];
-
-	/**
-	 * The fields this answer has, tokenised once. The prose is the model's own, so
-	 * there are no offsets to slice: every Cyrillic word becomes a control, and the
-	 * sentence it sits in is the whole context the click can send (Q20). An answer
-	 * the model wrote as prose instead of JSON has `meaning` and nothing else.
-	 */
-	const fields = $derived.by(() => {
-		const text: Record<PaneField, string | null> = {
-			meaning: answer.meaning,
-			etymology: answer.etymology,
-			example: answer.example
-		};
-		const out: { name: PaneField; title: string; runs: PaneRun[] }[] = [];
-		for (const field of FIELDS) {
-			const body = text[field.name];
-			if (body !== null) out.push({ name: field.name, title: field.title, runs: paneRuns(body) });
-		}
-		return out;
-	});
-
 	/** The word this panel is about, when it was clicked in the pane's own prose. */
-	function isMarked(field: PaneField, run: PaneRun): boolean {
-		return openWord.source === 'pane' && openWord.field === field && openWord.form === run.text;
-	}
+	const mark = $derived(
+		openWord.source === 'pane' ? { field: openWord.field, form: openWord.form } : null
+	);
 
 	/**
 	 * The popup is anchored to the chip's box. `fixed` rather than `absolute`
@@ -176,37 +150,11 @@
 		<p class="state">{message}</p>
 	{/if}
 
-	<!-- One rendering for both shapes: an answer the model wrote as prose has
-	     `meaning` and nothing else, and that prose is a field like any other. -->
-	<div class="body" class:dim={dim}>
-		{#each fields as field (field.name)}
-			<section>
-				<h2>{field.title}</h2>
-				<!-- single line on purpose: no whitespace text nodes between the slices -->
-				<p class="text">{#each field.runs as run, k (k)}{#if run.sentence === ''}<span>{run.text}</span>{:else}<button type="button" class="tok" class:open={isMarked(field.name, run)} aria-current={isMarked(field.name, run) ? 'true' : undefined} onclick={() => onask(run.text, run.sentence, field.name)}>{run.text}</button>{/if}{/each}</p>
-			</section>
-		{/each}
+	<!-- The prose is one component, shared with the panel a pane word came from:
+	     same text, same measure, and only the controls differ (Q24). -->
+	<div class="body">
+		<AnswerBody {answer} {mark} {onask} {dim} />
 	</div>
-
-	{#if answer.parsed}
-		<!-- A rewrite of a sourced etymology and a recollection are not the same
-		     claim, so the pane says which one this is — and, when there is a
-		     source, shows it. The model rewrites prose; it does not get to be the
-		     only witness for a reconstruction it may have mangled. At full
-		     contrast: a dim attribution reads as part of the answer's body. -->
-		<div class="source">
-			<p class="attribution">{answer.etymologySource === 'wiktionary' ? 'по данным Викисловаря' : 'сгенерировано, не проверено'}</p>
-			{#if answer.sourceText !== null}
-				<details class="quoted">
-					<summary>Текст из Викисловаря</summary>
-					<p class="quoted-text">{answer.sourceText}</p>
-				</details>
-			{/if}
-			{#if answer.sourceUrl !== null}
-				<a class="source-link" href={answer.sourceUrl} target="_blank" rel="noreferrer">{answer.lemma ?? answer.word} в Викисловаре</a>
-			{/if}
-		</div>
-	{/if}
 </div>
 
 <style>
@@ -313,85 +261,10 @@
 		font-size: 0.9rem;
 	}
 
-	/* the answer is prose: give it a measure instead of the pane's full width */
+	/* the answer is prose: give it a measure instead of the pane's full width.
+	   Everything inside is AnswerBody, which explains itself. */
 	.body {
 		max-width: 46rem;
 		padding: 1.25rem 1.5rem 0;
-		transition: opacity 120ms ease-in-out;
-	}
-
-	.body.dim {
-		opacity: 0.55;
-	}
-
-	section {
-		margin: 0 0 1.25rem;
-	}
-
-	h2 {
-		margin: 0 0 0.3rem;
-		color: var(--fg-muted);
-		font-size: 0.8rem;
-		font-weight: 600;
-		letter-spacing: 0.04em;
-	}
-
-	.text {
-		margin: 0;
-		line-height: 1.7;
-		/* model output is text: the fields keep the model's own line breaks */
-		white-space: pre-wrap;
-	}
-
-	/* The pane's own words are controls, and wear what the sentence pane's do */
-	.tok {
-		font: inherit;
-		color: inherit;
-		background: none;
-		border: 0;
-		padding: 0;
-		border-radius: 2px;
-		cursor: pointer;
-	}
-
-	.tok:hover {
-		background: var(--accent-soft);
-	}
-
-	.tok.open,
-	.tok.open:hover {
-		background: var(--sentence);
-	}
-
-	.source {
-		max-width: 46rem;
-		padding: 0 1.5rem;
-		color: var(--fg-muted);
-		font-size: 0.85rem;
-	}
-
-	.attribution {
-		margin: 0;
-	}
-
-	.quoted {
-		margin: 0.5rem 0 0;
-	}
-
-	.quoted summary {
-		cursor: pointer;
-	}
-
-	.quoted-text {
-		margin: 0.4rem 0 0;
-		padding-left: 0.8rem;
-		border-left: 2px solid var(--rule);
-		line-height: 1.6;
-	}
-
-	.source-link {
-		display: inline-block;
-		margin-top: 0.5rem;
-		color: var(--accent);
 	}
 </style>

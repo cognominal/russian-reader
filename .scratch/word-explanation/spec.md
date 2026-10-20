@@ -429,11 +429,13 @@ consequence, not an accident.
 
 ## 9. Client behaviour
 
-- New component `ExplanationPane.svelte`, pure display: the answer in, plus `onclose` and `onask`
-  callbacks out. It owns three controls — the ×, the grammar chip and its popup, and every word of the
-  answer's prose — and no state beyond them, except the popup's open flag, which the page holds because
-  Escape is a layer stack there (§10, Q19).
-- State in `read/[slug]/+page.svelte`: `{status: 'idle'|'loading'|'ready'|'error', request: ExplainRequest, word, answer, openWord, selection, message, retryUntil, history, cursor, tooltip}` — the page owns the
+- Components: `ExplanationPane.svelte` is the panel being read — pure display, the answer in, plus
+  `onclose` and `onask` callbacks out. It owns three controls — the ×, the grammar chip and its popup, and
+  every word of the answer's prose — and no state beyond them, except the popup's open flag, which the page
+  holds because Escape is a layer stack there (§10, Q19). `AnswerBody.svelte` renders that prose for this
+  pane and for `OriginPane.svelte`, the read-only copy that takes the paragraph pane while a pane word's
+  explanation is up (Q24): one rendering, so the two cannot drift.
+- State in `read/[slug]/+page.svelte`: `{status: 'idle'|'loading'|'ready'|'error', request: ExplainRequest, word, answer, openWord, originOf, selection, message, retryUntil, history, cursor, tooltip}` — the page owns the
   state machine, the components own their markup.
 - `explain(sel)` is called from the `onSelect` handler (an event, not an `$effect`) when
   `sel.tokenIndex !== null`, and `askPane(word, sentence, field)` from the pane's own word controls; both
@@ -531,6 +533,16 @@ consequence, not an accident.
   panels ahead of the cursor, browser-style. With the pane closed, either arrow brings back the panel it
   was closed on. Shift/⌘/⌃/⌥ plus an arrow is left to the browser, so Shift+← still extends a selection
   in the text, and an arrow that walks no panel is not swallowed.
+- **A word taken from an explanation takes the explanation with it** (Q24): while such a panel is on
+  screen the paragraph pane holds the answer it was taken from — scrolled to the field the word sits in,
+  with the word washed — because the article's paragraph is no context for a word that came out of an
+  explanation. It is read-only: the ×, the grammar chip and the clickable words belong to the panel being
+  read, on the left; this one is what that panel is read against. The origin is a property of the panel
+  on screen, held beside `answer` and `openWord` and stored on the history entry, so a walk carries it
+  both ways and the session's panels can be dropped without taking it from a panel still on screen. The
+  sentence pane keeps the article pair the word was asked from. `AnswerBody.svelte` renders the prose of
+  an answer for both panes: the interactive pane passes `onask`, the origin copy does not, and the same
+  text rendered twice would drift.
 - **The session's clock is the `explain_session` cookie** (§5): the page reads it before honouring an
   arrow, and an hour without a request means the panels are dropped — the one on screen, an answer
   being read, is left alone. The history lives in the page, so a reload starts with none: the cookie
@@ -557,6 +569,9 @@ consequence, not an accident.
   cannot disagree about which texts exist; the globs live under `$lib/server` so a client import cannot
   pull whole articles into the browser bundle. The line lives inside the article pane, so it goes when
   an explanation replaces it — accepted: nobody switches texts mid-answer.
+- The paragraph pane holds the article's paragraph, and in place of it the explanation a pane word came
+  from while that word's explanation is on screen (Q24, §9): same pane, same scroll container, its own
+  measure. One pane, two things it can be read against.
 - `section.pane-ru` is the swap point: `<RussianPane>` normally, `<ExplanationPane>` while an
   explanation is open. The pane keeps its `overflow-y: auto`, so the answer scrolls in the same
   container the article did; the × lives in a header row that is `position: sticky; top: 0` inside
@@ -796,6 +811,20 @@ Browser (real Chromium, as the reader is verified today):
     ← twice from A moved nothing, so the key stayed with the browser. Before the fix the same walk put A
     back with the sentence pane still on s2 and no word marked.
 
+32. **Ran 2026-10-20**, for the origin copy (Q24): with ¶20 s1 picked and «дворянское» answered, clicking
+    «Дворянское» in that answer's own prose put «Откуда слово: дворянское» in the paragraph pane as soon as
+    the panel landed — «Дворянское» washed in its own field, the aside's label «Откуда слово», the sentence
+    pane still on ¶20 s1 with no word marked, since a pane word is not in the article. ← gave the article
+    word back: the translation returned and the sentence pane washed «дворянское» again; → returned the
+    origin copy. A word clicked in the source's «Пример», in a 420 px viewport where the copy overflows
+    (235 px of scroll), landed dead centre — mark centre 121 px against a pane middle of 121 px, at
+    `scrollTop` 229 — and with the mark near the top of a short copy the effect correctly scrolled nothing
+    (0 of 235). Esc put the article and the translation back. The pane being read still measures as before:
+    its word controls transparent at rest, `--accent-soft` under the pointer, `--sentence` on the open word.
+    A first attempt at the derivation compared the answer on screen with the history entry by identity and
+    showed nothing until a walk set both from the same source: a `$state` array read hands back a different
+    proxy, so the origin is held as state beside `answer` and `openWord` instead.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -879,6 +908,12 @@ pointers.
   so the article header now lists the other texts, by title and date, one click each. The user chose
   the header over the right column and over a floating control, and direct links over a link to the
   index; the accepted cost is that the line goes when an explanation takes the pane. See §10.
+- **Q24 — answered** (user's instruction, 2026-10-20): when the word being explained was itself clicked in
+  an explanation, the paragraph pane shows the explanation it came from — scrolled to the field the word
+  sits in, with the word washed — because the article's paragraph is no context for a word that came out of
+  an explanation. The user chose this over opening the new explanation in the paragraph pane (two
+  explanations at once, source on the left) and over leaving the article's paragraph on the right. In the
+  same breath the user asked that walking to a panel restore the other panes: see Q23. See §9, §10.
 - **Q23 — answered** (user's report, 2026-10-20): a panel remembers the pair the right column was on when
   it was asked for, and walking to that panel restores it — so the sentence pane and the paragraph pane
   come back with the panel, with the explained word highlighted again and the dim matching. The pair is

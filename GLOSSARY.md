@@ -69,3 +69,10 @@ _Avoid_: third pane, pane 3, pair pane
 A model-written answer about one word — what it means in this sentence, where it comes from, one
 example — in simple Russian, shown in place of the article pane until it is closed.
 _Avoid_: definition, gloss, translation, tooltip, note
+
+**Origin**:
+The explanation a word of another explanation was clicked in, while the explanation of that word is being
+read: it takes the paragraph pane, scrolled to the field the word sits in. A word taken out of an
+explanation has nothing to do with the article's paragraph, so the explanation it came out of is its
+context — the counterpart, for explanation panes, of the sentence pair an article word gets.
+_Avoid_: source (that is the Wiktionary text), parent, previous answer, history entry
