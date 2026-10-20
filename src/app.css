@@ -8,6 +8,7 @@
 	--rule: #ded9d0;
 	--accent: #8a2f2f;
 	--accent-soft: rgba(138, 47, 47, 0.12);
+	--error: #b3261e;
 	--sentence: rgba(0, 0, 0, 0.04);
 	--font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
 		sans-serif;
@@ -22,6 +23,7 @@
 		--rule: #343338;
 		--accent: #e8a0a0;
 		--accent-soft: rgba(232, 160, 160, 0.16);
+		--error: #ff8f7a;
 		--sentence: rgba(255, 255, 255, 0.06);
 	}
 }

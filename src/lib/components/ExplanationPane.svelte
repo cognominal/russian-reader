@@ -147,7 +147,7 @@
 	{#if asking !== null}
 		<p class="state">спрашиваю «{asking}»…</p>
 	{:else if message !== null}
-		<p class="state">{message}</p>
+		<p class="state error">{message}</p>
 	{/if}
 
 	<!-- The prose is one component, shared with the panel a pane word came from:
@@ -253,12 +253,18 @@
 		background: var(--accent-soft);
 	}
 
+	/* The same two lines the sentence pane shows, in the same two tones: a wait is
+	   muted, a failure is the error colour. */
 	.state {
 		max-width: 46rem;
 		margin: 0;
 		padding: 0.7rem 1.5rem 0;
-		color: var(--accent);
+		color: var(--fg-muted);
 		font-size: 0.9rem;
+	}
+
+	.state.error {
+		color: var(--error);
 	}
 
 	/* the answer is prose: give it a measure instead of the pane's full width.

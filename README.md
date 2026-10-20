@@ -6,6 +6,9 @@ highlighted — plus, below it, the current RU/EN sentence pair on its own. The 
 text: nothing in it is clickable, and word-level interaction (asking what a word means) belongs to the
 sentence pane — see `.scratch/word-explanation/spec.md`.
 
+The words this repo means by *article*, *paragraph*, *sentence pair*, *pane*, *explanation* and *origin*
+are defined in `GLOSSARY.md`, and the code, the spec and this file use them in those senses only.
+
 ## Layout
 
 | Path | What it is |
@@ -16,7 +19,8 @@ sentence pane — see `.scratch/word-explanation/spec.md`.
 | `scripts/build_article.py` | the pipeline: strip chrome → pair paragraphs → split and align sentences → rank rare words → emit JSON |
 | `src/lib/content/<slug>.json`, `articles.json` | generated, committed; loaded server-side, never shipped to the client |
 | `src/routes/read/[slug]` | the reader (`/` lists the catalog) |
-| `src/lib/components/{RussianPane,TranslationPane,SentencePane}.svelte` | the panes |
+| `src/lib/components/{RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the panes and what they render |
+| `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
 
 ## Run the app
 
@@ -110,15 +114,21 @@ last) and centre the picked sentence in the pane, so it always sits at the same 
 sentence taller than the pane is aligned by its top instead, and centring is clamped at the ends of the
 article. On narrow screens the pane is the page below the sticky translation column, so the centre is
 computed for that band. Past either end of the article the key falls through to the browser, so the
-header links stay reachable. `Esc` clears the selection. The translation pane announces the
-marked sentence in a live region, so stepping works without seeing the highlight move.
+header links stay reachable. A step also drops whatever focus the reader left in either pane, so the
+focus ring never rides into the sentence the step lands on — it stays on `Tab`'s job, the pair — and it
+takes an open explanation with it: `Tab` and `Shift+Tab` put the article and the paragraph back before
+they move, so the reader never lands on the overlay. `Esc` clears the selection. The translation pane
+announces the marked sentence in a live region, so stepping works without seeing the highlight move.
 
 ## Word explanation
 
 Clicking a word in the Russian line of the sentence pane asks the server to explain it — meaning in
-this sentence, etymology, one example, in simple Russian — and the answer replaces the article pane
-until it is closed. The endpoint is `POST /read/[slug]/explain`; it re-derives the word, lemma,
-sentence and translation from the article JSON, fetches the lemma's ru.wiktionary «Этимология», renders
+this sentence, etymology, one example, in simple Russian — and the answer replaces the article pane,
+overlaying it and the paragraph pane, until it is closed (×, `Esc`, or a `Tab` step). A failure the
+reader has to act on — a refusal, a missing key, an endpoint that never answered — is written next to
+the word in the error colour, while «спрашиваю…» and its cooldown stay muted. The endpoint is
+`POST /read/[slug]/explain`; it re-derives the word, lemma, sentence and translation from the article
+JSON, fetches the lemma's ru.wiktionary «Этимология», renders
 `prompts/word.md`, makes one chat-completion call, and caches the answer on disk. See
 `.scratch/word-explanation/spec.md` for the contract.
 

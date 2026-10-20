@@ -1,6 +1,7 @@
 # Spec: объяснение слова — an explanation pane fed by a model
 
-Status: draft — needs grilling (see Open questions); trigger and placement revised 2026-10-19
+Status: draft — needs grilling (see Open questions); trigger and placement revised 2026-10-19, what a
+Tab step does to an open pane revised 2026-10-20 (Q6)
 Date: 2026-10-19
 Feature slug: `word-explanation`
 
@@ -8,9 +9,11 @@ Feature slug: `word-explanation`
 
 Clicking a word in the Russian sentence of the **sentence pane** — the one holding the current RU/EN
 pair — asks the server to explain that word in simple Russian, with etymology. The answer **takes over
-the article pane** (the left column) until it is closed: scrollable, a × at its top right, and the same
-key that already undoes things in this app. The click stays where it was, in the sentence pane, so the
-word and the sentence it came from stay on screen while the answer replaces the text you were reading;
+the article pane** (the left column) until it is closed: scrollable, a × at its top right, the same key
+that already undoes things in this app, and a `Tab` / `Shift+Tab` step — which puts the three panes back
+the way it found them and *then* moves on, so a reading key never leaves the reader on the overlay (Q6).
+The click stays where it was, in the sentence pane, so the word and the sentence it came from stay on
+screen while the answer replaces the text you were reading;
 closing puts the article back where it was.
 
 The article pane itself is **plain text**: no word in the article is clickable any more, and the
@@ -27,7 +30,7 @@ today.
 | **OpenRouter with `deepseek/deepseek-v4.1-flash`**, keyed by an app-specific `EXPLAIN_API_KEY` (user's call, 2026-10-19, Q8) | It is the only provider this machine has credentials for, it is OpenAI-compatible so the call is one `fetch`, and it is the model omp already runs here — measured at ~2 s and $0.00012–$0.00035 per call with reasoning disabled. The app reads its own variable and never touches omp's credential store | Reading `OPENROUTER_API_KEY` from the ambient environment (couples the app to a global name); a local model (no GPU and no server binary on this machine); an SDK |
 | **Etymology: a Wiktionary lookup first, the model's memory only as a fallback** (user's call, 2026-10-19, Q5) | Measured: ru.wiktionary has a real etymology for 8/9 common words and a third of the rarest lemmas, and where it exists it is better than anything a model recalls (праслав. forms, etymon chains). The model is still needed to rewrite it for an A2 reader — dictionary prose is not A2 | Prompt-only (correct but thin, and unverifiable); an agent loop; a second source (en.wiktionary covers 2/10) |
 | **The pane says where the etymology came from** — «по данным Викисловаря» or «сгенерировано, не проверено» | The reader can then weigh it. A rewrite of a sourced etymology and a recollection are not the same claim, and the difference is free to display | One disclaimer for both; no source line at all |
-| **The open word wears the article's own "current" wash; Tab keeps the answer, dimmed** (user's call, 2026-10-19, Q6) | `--sentence` already means "the current one" here, and a clicked word is exactly that; `--accent-soft` keeps its existing meaning (hover, and the marked English runs). Tab then moves the selection without destroying what is being read — the dim, derived from "the selection no longer shows that word's sentence", is the cue that the left pane is not about the current pair | Accent-tinting the word (a second meaning for a colour that already means hover); tinting the sentence in the sentence pane (it holds one sentence); closing the answer on any selection change |
+| **The open word wears the article's own "current" wash; a Tab step closes the answer and puts the three panes back** (Q6, revised 2026-10-20) | `--sentence` already means "the current one" here, and a clicked word is exactly that; `--accent-soft` keeps its existing meaning (hover, and the marked English runs). `Tab` is how this reader moves through the text, so it must not leave the overlay on screen: the article comes back at the offset it was left at, the paragraph comes back with it, and the pair then moves on. Focus is not handed back to the clicked word — the step owns where the reader is — and the panes come back exactly as `Esc` brings them back, so the two keys differ in nothing but what follows. The dim survives only where the reader has no key in hand: an answer that lands after a Tab (Q11) and a re-click in flight or failed (Q12) | Tab keeps the answer on screen, dimmed, as the cue that the left pane is about another word (the 2026-10-19 rule, replaced); a second close key; closing on a click elsewhere |
 | **The pane opens when an answer arrives, not when the word is clicked** (user's call, 2026-10-19, Q11) | Measured: a cold click costs ~2.5 s (a Wiktionary GET plus one model call), a cache hit costs a file read. Swapping on arrival keeps every pre-answer failure — 429, 503, 5xx, timeout, missing key, prompt typo — next to the word with the article untouched, so §11's rule holds with no classify-then-un-swap path and no pre-flight knowledge of the deployment state. The deferred layout change is paid only on cold clicks | Swapping at click time and reporting 429/503/5xx inside the pane; a preflight request; un-swapping on rejection |
 | **A second click replaces the answer in place** (user's call, 2026-10-19, Q12) | The pane is already the answer surface; demanding a close first turns a one-gesture lookup into two. The abort plus the monotonic request id already guarantee that a slow answer cannot overwrite a newer one, and the previous answer is kept (dimmed) rather than cleared, so a failed re-click never blanks the pane | Requiring a close first; a queue of answers; clearing the body on the click |
 | **The pane shows the fetched Wiktionary text, not only the model's rewrite** (user's report, 2026-10-19, Q17) | The report that "the wiktionary entry is missing" was right in the way that matters: the fetch happened and the label was honest, but the reader saw only a paraphrase — and in the one case examined the paraphrase mangled the very detail the source had been fetched for (`*rъvātī` came back as `*гъvаtī`). Showing the cleaned text verbatim, plus a link to the page, makes the attribution checkable | Only a link to the page; only the label; storing the text in the cache record — it is already in the prompt, and the lookup runs before the cache read, so the response carries it either way |
@@ -466,7 +469,11 @@ consequence, not an accident.
   article is untouched. If the answer arrives after the selection has moved on, the pane still opens,
   and it opens dimmed (§9's staleness rule) with its header naming the word.
 - **Focus.** Opening moves focus to the explanation region (`tabindex="-1"`), so Esc works from
-  anywhere and a screen reader reads the answer; closing returns focus to the word that was clicked.
+  anywhere and a screen reader reads the answer; closing with the × or Esc returns focus to the word
+  that was clicked. A Tab step does **not**: it is the step that decides where the reader is, and the
+  ring would otherwise ride into the new sentence on whatever element the old position became — the
+  sentence pane's word buttons and the article's links included, so a step drops whatever focus the
+  reader left inside either pane.
 - **Esc is layered** (Q9a, user's call, 2026-10-19): with an explanation open it closes that; with none
   open it clears the selection, as it does today; with neither, the key is left to the browser rather
   than swallowed. One key, the most recent thing first — the convention dialogs use. No second key.
@@ -480,8 +487,20 @@ consequence, not an accident.
   text you are reading with «не больше 20 объяснений в час» is worse than not answering. When the pane
   is already open (a re-click), a failed re-click keeps the last answer, dimmed, with the message above
   it.
-- Selection changes without a word (Tab, plain-text click) leave the explanation open, dimmed — it
-  belongs to a word, not to the current sentence.
+- A selection change without a word **closes the answer**: `Tab` and `Shift+Tab` put the article and the
+  paragraph back the way `Esc` does, at the offset the swap saved, and only then move the pair (Q6,
+  revised 2026-10-20). The two keys differ in nothing but what follows — the step — because a reading
+  key that leaves the overlay on screen makes the reader look at a word they moved away from. Nothing
+  else can change the selection while the pane is open: the article is not on screen to be clicked, and
+  an arrow restores a panel together with the pair it was asked about (Q23). A request still in flight
+  when the key lands is dropped, as it is on close.
+- **The status line has two tones** (user's request, 2026-10-20): «спрашиваю…» and its countdown are
+  muted (`--fg-muted`), while a failure — a 429 refusal, a 503, a 5xx, the client's own
+  «Сервис объяснений не ответил.», countdown included — wears the palette's `--error`
+  (`#b3261e` light, `#ff8f7a` dark), added for this. Both places the line appears carry the same tones:
+  next to the clicked word in the sentence pane, and the explanation pane's own `.state` line above a
+  kept answer. Not `--accent`: accent means a link and hover here, and a failure the reader has to act
+  on is neither. Reported as a problem to fix: «Сервис объяснений не ответил.» rendered like a wait.
 - Accessibility: the explanation region is `aria-live="polite"` with `lang="ru"`, so arriving text is
   announced. Enter/Space on a focused word button already triggers the click path, so the keyboard
   route works.
@@ -494,19 +513,22 @@ consequence, not an accident.
   (Q17). The model's prose dims; the attribution and the way to check it do not.
 - The open word carries the article's own "current" wash: `background: var(--sentence)`, hover
   `--accent-soft`, `border-radius: 2px`, `aria-current="true"`, and the browser's focus ring left
-  alone. The tint exists only while the sentence pane still shows that word's sentence — after Tab the
-  word is rendered nowhere, and the pane header is the only thread back to it.
+  alone. The tint exists only while the sentence pane still shows that word's sentence — after a Tab
+  step the pane is closed and the word is rendered nowhere, and the pane header is the thread back to it
+  for the panels an arrow still walks (Q23).
 - The sentence in the sentence pane gets no tint of its own: the pane holds one sentence, so a tint
   would say nothing, and the sentence-level tint belongs to the article, which the answer is covering.
 - Staleness is derived, never stored, and it is a **sentence** comparison: the explanation pane owns
   `openWord`, an article word's paragraph, sentence and index or a pane word's form and field; stale
-  means the current selection is not that sentence. Tab clears `Selection.tokenIndex`, so comparing
-  `tokenIndex` would go stale on the first Tab
-  and never come back; comparing the sentence makes Tab away dim the body and Tab back restore it — and
-  the word's wash returns with it, because `SentencePane` tints the button whose index equals
-  `openWord.tokenIndex` whenever the selection shows that sentence. While stale the answer **body**
-  dims to `0.55`; the header, the source line and the × keep full contrast, because a dimmed close
-  button reads as disabled.
+  means the current selection is not that sentence. Since 2026-10-20 a Tab step closes the pane instead
+  of moving the selection under it (Q6), so this comparison is what the two cases with no key in the
+  reader's hand still rest on: an answer that lands after a Tab (Q11) and a re-click in flight or failed
+  (Q12). Comparing the sentence rather than `tokenIndex` is what keeps the two apart, because a Tab
+  clears `Selection.tokenIndex` and would leave a `tokenIndex` comparison stale forever — and the wash
+  returns with the sentence, because `SentencePane` tints the button whose index equals
+  `openWord.tokenIndex` whenever the selection shows that sentence. While stale the answer **body** dims
+  to `0.55`; the header, the source line and the × keep full contrast, because a dimmed close button
+  reads as disabled.
 - **A word of the answer is itself askable** (Q20): the pane's three fields are tokenised in the
   browser (`src/lib/explain-text.ts`, with the pipeline's own word and sentence rules) and every
   Cyrillic word becomes a `button.tok` wearing what the sentence pane's tokens wear. The click sends
@@ -620,8 +642,9 @@ consequence, not an accident.
 | second click inside 2 minutes | cooldown line + countdown next to the word; the request is still sent (Q3), so a word already in the cache is answered instead of refused |
 | model returns prose, not JSON | the prose as the answer body, `parsed: false` — no error state. It is an answer, so it opens the pane |
 | model API down / 5xx | «Сервис объяснений ответил ошибкой (502)» next to the word; if the pane is already open, the last answer stays, dimmed, with the message above it |
+| the endpoint never answers — the dev server was stopped or restarted, or the page reloaded while the request was in flight | «Сервис объяснений не ответил.» in the error colour next to the word. This is the client's own line, from a `fetch` that rejected: **nothing reached the endpoint**, which is why it says this while the wifi is up and while a provider-side failure would read «ответил ошибкой (502)». Look at whether the server is still running before looking at the network |
 | slow model | «спрашиваю…» next to the word, then the timeout line in the same place: a request that never produces an answer never hides the article |
-| click a word, then Tab away | the explanation stays open, dimmed, marked as belonging to another word |
+| click a word, then `Tab` / `Shift+Tab` | the answer closes and the three panes come back as they were — the article at the offset it was left at, the paragraph with it — and the pair moves on by one; nothing about the word is left on screen but the panel an arrow can still walk back to (Q23) |
 | cache directory unreadable or read-only | nothing visible: the answer is still served, the entry is skipped, one log line |
 | the model spends the budget on reasoning | `finish_reason: length` or `content: null` → 502 `upstream-error`, never rendered as an answer. Prevented in the request (§8), caught here anyway |
 | Wiktionary unreachable, slow, or a stub | nothing visible: the answer is prompt-only and the source line says «сгенерировано, не проверено» |
@@ -703,8 +726,11 @@ Browser (real Chromium, as the reader is verified today):
     the word, the pane does **not** take over, no second request; clear the cookie → it works.
 17. Click a word already in the disk cache inside the window → it answers instantly, `cached:true`, no
     429 — the bypass is visible, not just documented.
-18. Tab stepping through sentences never sends a request (assert zero POSTs while stepping); the
-    explanation stays open and dims.
+18. Tab stepping through sentences never sends a request (assert zero POSTs while stepping). With an
+    explanation open the first `Tab` closes it: the article is back at the offset the swap saved, the
+    paragraph pane is back, the pair has moved one step, focus is on nothing, and a re-click that was
+    still in flight never lands (assert no `.explain` 5 s later). Later steps only move the pair, and
+    `←` from the closed article still brings the panel and its pair back with no request.
 19. Layout measured at 1400 px, 900 px and 400 px: the explanation's measure caps at ~46rem, at 400 px
     the explanation covers the viewport with its × reachable without scrolling, and the sticky column
     never overflows 60vh. With the article showing, the first pane has no `button` and clicking
@@ -723,15 +749,17 @@ Browser (real Chromium, as the reader is verified today):
     rule B — exactly 368 tokens satisfy the rule's conditions in 66181, so forcing disjointness would
     cap `proper` at 352, below the 359 the rule yields. Recorded rather than papered over: rarity is
     data, and the flag only decides whether a token is a control.
-22. Click a word → it carries the article's own wash and `aria-current`; Tab to the next sentence → the
-    answer stays, its body at ~0.55 opacity, the × at full contrast; Shift+Tab back → full contrast
-    again. Assert the computed styles, not the presence of a class.
+22. Click a word → it carries the article's own wash and `aria-current`; the answer body is at full
+    contrast while its word's sentence is the current one. Assert the computed styles, not the presence
+    of a class. *(Superseded 2026-10-20: this item used to assert that a Tab step left the answer on
+    screen, dimmed; a Tab step now closes it — Q6, item 33.)*
 23. **Ran 2026-10-19** against `vite dev` on 5199 with the real key. A cold click on «пороговых»
     (24034 ¶57) opened the pane only when the answer arrived, 4438 ms server-side, with «спрашиваю…»
     next to the word while it was in flight; the same word again came from the disk cache in 465 ms; an
     uncached word inside the window left the article in place and showed «Не чаще одного объяснения в 2
     минуты» with a ticking «ещё 114 с» next to the word it was clicked on; Tab dimmed the answer body to
-    0.55 with the × at 1 and Shift+Tab restored both the body and the word's wash; Esc returned the
+    0.55 with the × at 1 and Shift+Tab restored both the body and the word's wash (both superseded
+    2026-10-20: a Tab step now closes the pane — Q6, item 33); Esc returned the
     article to the exact `scrollTop` it had before the click and put focus back on the word button; a
     deliberately typo'd placeholder answered `503` «Неизвестные подстановки: {{nope}}» next to the word
     with the article untouched, which also proves the prompt file is read per request. `bun run check`
@@ -767,7 +795,8 @@ Browser (real Chromium, as the reader is verified today):
     `…/wiki/порядок`, so the lookup of the *form* found a page. The cookies were `explain_session`
     (`HttpOnly` false, `Path=/read`, expiry 3600 s out) and `explain_last`. ← put the previous panel
     back («распорядилась → распорядиться», chip and all) and → returned to the pane word, both
-    instantly and with no request; Tab did not dim a pane-origin panel (opacity 1 before and after);
+    instantly and with no request; Tab did not dim a pane-origin panel (opacity 1 before and after —
+    superseded 2026-10-20: Tab now closes even that panel, Q6, item 33);
     Esc closed it and ← from the closed article brought the panel back. A second pane word inside the
     window was refused with «Не чаще одного объяснения в 2 минуты» **in the pane**, 0 status lines in
     the sentence pane, the kept answer dimmed to 0.55, and the refused word added no history entry.
@@ -805,8 +834,9 @@ Browser (real Chromium, as the reader is verified today):
 
 31. **Ran 2026-10-20**, after the user reported that walking did not put the right column back: with
     ¶20 s1 selected and «дворянское» answered (panel A), a Tab moved the pair to ¶20 s2 and dimmed the
-    answer; a pane word clicked in that answer («Дворянское», panel B) left the pair on s2. ← put A back
-    with the sentence pane on **¶20 s1** and «дворянское» marked again, its dim gone; → put B back with
+    answer (the dim is gone as of 2026-10-20: that Tab now closes the pane and `←` brings A back —
+    Q6, item 33); a pane word clicked in that answer («Дворянское», panel B) left the pair on s2. ← put A
+    back with the sentence pane on **¶20 s1** and «дворянское» marked again, its dim gone; → put B back with
     the pane word marked in the answer's own prose and the pair on s2, which is where B was asked from;
     ← twice from A moved nothing, so the key stayed with the browser. Before the fix the same walk put A
     back with the sentence pane still on s2 and no word marked.
@@ -824,6 +854,36 @@ Browser (real Chromium, as the reader is verified today):
     A first attempt at the derivation compared the answer on screen with the history entry by identity and
     showed nothing until a walk set both from the same source: a `$state` array read hands back a different
     proxy, so the origin is held as state beside `answer` and `openWord` instead.
+
+33. **Ran 2026-10-20**, for the Q6 revision — a Tab step closes the pane instead of dimming it — and for
+    the focus rule it leans on. In the browser against `vite dev`: with the article scrolled to 700 px
+    and a cached answer open on «распорядилась» (¶10 s1), one `Tab` left `.explain` gone, the article
+    back at exactly 700 px, the paragraph pane showing ¶10's translation again, the pair on ¶10 s2,
+    `document.activeElement` on `body`, and 0 POSTs. `Shift+Tab` from a panel on ¶11 s0 closed it and
+    stepped back to ¶10 s2; `←` from the closed article put the panel and its pair back with the POST
+    count unchanged. At the article's end (24034 ¶135 s0, «внимание») a `Tab` closed the pane, kept the
+    last sentence selected, and fell through to the browser, which focused the header's `kremlin.ru`
+    link — the ends still hand the key over. The focus rule was measured on the same path before the
+    revision: Esc put focus on the clicked word's button (`:focus-visible`), and the next `Tab` left the
+    ring on the word at the same position in the *new* sentence («князья», `data-tok="33"` after
+    «распорядилась», `data-tok="21"`), which is what a step dropping focus removes.
+    Against a local stub provider (3 s latency, `EXPLAIN_WIKTIONARY_URL=off`,
+    `EXPLAIN_CACHE_DIR=/tmp/explain-stub-cache`): a re-click in flight («спрашиваю «стала»…» in the pane)
+    was dropped by a `Tab` — the pane closed at once, no `.explain` existed 4.5 s later — while a first
+    click still in flight when a `Tab` landed stepped the pair and its answer then opened the pane, as
+    Q11 says. Esc is unchanged: it closes, restores the same 700 px, and puts focus back on the clicked
+    word's button. `bun run check` 295 files / 0 errors / 0 warnings; `bun run build` clean.
+
+34. **Ran 2026-10-20**, for the two tones (§9, Q25). With a `fetch` that rejects `/explain` the way a
+    dead endpoint does, a click put «Сервис объяснений не ответил.» next to the word as
+    `class="status error"`, computed `rgb(179, 38, 30)` (`--error`, light theme); while the same request
+    was in flight the line read «спрашиваю…» in `rgb(106, 101, 93)` (`--fg-muted`). With the budget
+    spent (a forged `explain_calls` of 20 timestamps) a cached word still opened the pane — the cache
+    bypass — and an uncached word then put «Не больше 20 объяснений в час» in `rgb(179, 38, 30)` in the
+    pane's own `.state` **and** «…ещё 60 мин» in the same colour next to the word in the sentence pane.
+    The reproduction is honest about the cause: killing the dev server mid-request needs the kill inside
+    the request's 3 s window, which a hand-driven session cannot time — the patched `fetch` fails at the
+    same layer a stopped server does, and the spec's §11 row records which line means which cause.
 
 ## 13. Non-goals
 
@@ -855,9 +915,15 @@ pointers.
 - **Q5 — answered**: a ru.wiktionary lookup first (server-side, one fetch, before the single model
   call), the model's memory only when the page is absent or a stub, and the pane says which of the two
   the reader got. Not an agent loop. See §2, §7.1.
-- **Q6 — answered**: the open word wears the article's `--sentence` wash (`--accent-soft` stays hover),
-  the sentence pane's own sentence gets no tint, and Tab keeps the answer with its body dimmed to 0.55
-  while the header, the source line and the × stay at full contrast. See §2, §9.
+- **Q6 — answered, and revised** (user's instruction, 2026-10-20: "tab and shift tabing should restore
+  the three panes to their normal usage not the overlayed explanation pane"): the open word wears the
+  article's `--sentence` wash (`--accent-soft` stays hover), the sentence pane's own sentence gets no
+  tint, and a `Tab` / `Shift+Tab` step **closes** the answer — the article back at the offset the swap
+  saved, the paragraph pane back with it, the pair then moved on — instead of leaving it on screen
+  dimmed. Focus is not handed back to the clicked word on that path, and the keys differ from Esc in
+  nothing but what follows the close. The dim rule survives for the two states no key reaches: an answer
+  that lands after a Tab (Q11) and a re-click in flight or failed (Q12); the 2026-10-19 rule ("Tab keeps
+  the answer, dimmed") is the one this replaced. See §2, §9, §12.
 - **Q7 — deferred** (user's call, 2026-10-19): the ADR offer is set aside, not decided. Nothing in the
   implementation depends on it.
 - **Q8 — answered**: OpenRouter (`https://openrouter.ai/api/v1`) with `deepseek/deepseek-v4.1-flash`,
@@ -868,7 +934,8 @@ pointers.
   first Esc keeps the selection; a second clears it. (c) the article's `scrollTop` is saved once, at the
   swap, and written back when `RussianPane` remounts — never re-saved by a later click, whose pane holds
   the answer's scroll. (d) opening moves focus into the region and closing returns it to the word. §9
-  carried all four as written; nothing changed in the fold.
+  carried all four as written; nothing changed in the fold. (d) gained one exception on 2026-10-20: a
+  `Tab` step closes the pane and drops focus instead of returning it to the word (Q6).
 - **Q10 — desktop only, for now** (user's call, 2026-10-19, "ship the desktop path"): no narrow-screen
   overlay is built, so at ≤ 899 px the answer renders in the article pane, below the sticky right
   column, where it is off-screen at the moment of the click. A known gap, not an oversight; §10's
@@ -914,11 +981,19 @@ pointers.
   an explanation. The user chose this over opening the new explanation in the paragraph pane (two
   explanations at once, source on the left) and over leaving the article's paragraph on the right. In the
   same breath the user asked that walking to a panel restore the other panes: see Q23. See §9, §10.
+- **Q25 — answered** (user's report, 2026-10-20, «some problem. Should not happen, the wifi is up.
+  Anyway the message should be in red»): the line was the client's own «Сервис объяснений не ответил.»,
+  which is what a `fetch` that never reached the endpoint produces — a stopped or restarted server, or a
+  page reloaded mid-request — where a provider-side failure instead reads «Сервис объяснений ответил
+  ошибкой (502)». So the wifi was not the thing to look at; the server was. The actionable half did
+  change: a failure now wears the palette's new `--error` in both places the line appears, while
+  «спрашиваю…» and the countdown stay `--fg-muted`. See §9, §11, §12.
 - **Q23 — answered** (user's report, 2026-10-20): a panel remembers the pair the right column was on when
   it was asked for, and walking to that panel restores it — so the sentence pane and the paragraph pane
-  come back with the panel, with the explained word highlighted again and the dim matching. The pair is
-  read at the ask rather than when the answer lands, so a Tab during a request cannot move the panel's
-  own context out from under it. See §9, §12.
+  come back with the panel and the explained word is highlighted again. The pair is read at the ask
+  rather than when the answer lands, so a Tab during a request cannot move the panel's own context out
+  from under it — and since 2026-10-20 a Tab with an answer on screen drops a re-click that was still in
+  flight rather than moving any pair under it (Q6). See §9, §12.
 - **Q19 — answered** (user's request, 2026-10-19): the terse chip pops up a per-component gloss of its
   tag on hover and on focus, and dismissal is fourfold — pointer away, blur, a new answer, or Escape,
   which closes the popup before the answer, making the popup the top layer of the Escape stack. It is

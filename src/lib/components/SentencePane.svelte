@@ -12,6 +12,8 @@
 		text: string;
 		/** Epoch ms the courtesy window reopens; drives the countdown, gates nothing. */
 		retryUntil: number | null;
+		/** The message is a failure, not a wait: it wears the error colour. */
+		failed: boolean;
 	};
 
 	let {
@@ -141,7 +143,7 @@
 
 {#if picked !== null && ruSentence !== null}
 	<!-- single line on purpose: no whitespace text nodes may be inserted between the exact slices -->
-	<p class="line" lang="ru" data-para={picked.paragraph.i}><span class="tag">RU</span>{#each runs as run, k (k)}{@const open = isOpen(run)}{@const n = noteFor(run)}{#if run.tokenIndex === null}<span class="txt">{run.text}</span>{:else if run.proper}<span class="proper">{run.text}</span>{:else}<button type="button" class="tok" class:open={open} aria-current={open ? 'true' : undefined} data-tok={run.tokenIndex} onclick={() => choose(run)}>{run.text}</button>{/if}{#if n !== null}<span class="status">{n.text}{#if left > 0}<span class="count">ещё {leftText}</span>{/if}</span>{/if}{/each}</p>
+	<p class="line" lang="ru" data-para={picked.paragraph.i}><span class="tag">RU</span>{#each runs as run, k (k)}{@const open = isOpen(run)}{@const n = noteFor(run)}{#if run.tokenIndex === null}<span class="txt">{run.text}</span>{:else if run.proper}<span class="proper">{run.text}</span>{:else}<button type="button" class="tok" class:open={open} aria-current={open ? 'true' : undefined} data-tok={run.tokenIndex} onclick={() => choose(run)}>{run.text}</button>{/if}{#if n !== null}<span class="status" class:error={n.failed}>{n.text}{#if left > 0}<span class="count">ещё {leftText}</span>{/if}</span>{/if}{/each}</p>
 	{#if enSentence !== null}
 		<p class="line" lang="en"><span class="tag">EN</span>{enSentence}</p>
 	{:else}
@@ -215,11 +217,17 @@
 		font-style: italic;
 	}
 
-	/* «спрашиваю…» / the server's message, right where the click happened */
+	/* «спрашиваю…» / the server's message, right where the click happened. A
+	   failure is not a wait — it is the one line here the reader has to act on —
+	   so it wears the error colour, countdown included. */
 	.status {
 		margin-left: 0.4rem;
 		color: var(--fg-muted);
 		font-size: 0.85rem;
+	}
+
+	.status.error {
+		color: var(--error);
 	}
 
 	.count {

@@ -91,7 +91,8 @@
 			paragraph: ask.request.paragraph,
 			tokenIndex: ask.request.tokenIndex,
 			text: status === 'loading' ? 'спрашиваю…' : (message ?? 'Объяснение не получилось.'),
-			retryUntil
+			retryUntil,
+			failed: status === 'error'
 		};
 	});
 
@@ -127,7 +128,9 @@
 	 * the key is left to the browser, so the header links stay reachable. Escape
 	 * is layered: it closes the grammar popup first, then the answer, then clears
 	 * the selection, and with none of them it is left to the browser. A sentence
-	 * chosen this way pins no word.
+	 * chosen this way pins no word, any focus inside the reader is dropped, and an
+	 * explanation open in the article pane goes before the step: the key reads the
+	 * text, so it never leaves the reader on the overlay (Q6).
 	 */
 	function onKeydown(event: KeyboardEvent) {
 		if (
@@ -150,13 +153,29 @@
 		}
 		if (event.key !== 'Tab' || event.ctrlKey || event.altKey || event.metaKey) return;
 
+		// Tab is a reading key, so it never lands on the overlay: an explanation goes
+		// first and the three panes are back to their normal use whatever the step
+		// does next, the ends included (Q6). Focus is not handed back to the clicked
+		// word here — the step owns where the reader is — and the panes come back
+		// exactly as Esc brings them back, so the two keys differ in nothing but what
+		// follows.
+		if (answer !== null) {
+			forget();
+			void unswap();
+		}
+
 		const at = position(selection);
 		const next = at < 0 ? (event.shiftKey ? steps.length - 1 : 0) : at + (event.shiftKey ? -1 : 1);
 		if (next < 0 || next >= steps.length) return;
 
 		event.preventDefault();
+		// The step supersedes whatever held focus anywhere in the reader. Left on a
+		// word or a link, the ring rides into the new sentence on the element whose
+		// position the old one became, and the key reads as the cursor moving around
+		// a pane instead of the pair moving on (the word button `close()` focused
+		// included, which lives in the sentence pane).
 		const active = document.activeElement;
-		if (active instanceof HTMLElement && active.closest('.pane-ru') !== null) active.blur();
+		if (active instanceof HTMLElement && active.closest('.reader') !== null) active.blur();
 		const ref = steps[next];
 		selection = { paragraph: ref.paragraph, tokenIndex: null, sentence: ref.sentence };
 	}
@@ -360,12 +379,11 @@
 	}
 
 	/**
-	 * Closing is lossless: the article comes back at the offset it was left at,
-	 * the selection stays, and focus returns to the word that was clicked. A
-	 * request still in flight is dropped — the reader has moved on.
+	 * Take the answer off screen: the answer, the word it was about, and any
+	 * request still in flight — the reader has moved on either way. The word is
+	 * handed back because the two ways out differ only in what focus does after.
 	 */
-	async function close() {
-		if (answer === null) return;
+	function forget(): OpenWord | null {
 		const word = openWord;
 		controller?.abort();
 		controller = null;
@@ -376,14 +394,30 @@
 		ask = null;
 		status = 'idle';
 		message = null;
+		return word;
+	}
 
-		// Hiding a scroll container resets it, so the offset is written back rather
-		// than assumed. It is written after `tick()`, because the article pane's own
-		// effect has already asked for a smooth scroll to the current sentence by
-		// then, and again on the next frame, so that request cannot win.
+	/**
+	 * The article pane, back at the offset the swap saved (Q9c). Hiding a scroll
+	 * container resets it, so the offset is written back rather than assumed. It is
+	 * written after `tick()`, because the article pane's own effect has already
+	 * asked for a smooth scroll to the current sentence by then, and again on the
+	 * next frame, so that request cannot win.
+	 */
+	async function unswap() {
 		await tick();
 		restoreScroll();
 		requestAnimationFrame(restoreScroll);
+	}
+
+	/**
+	 * Closing is lossless: the article comes back at the offset it was left at,
+	 * the selection stays, and focus returns to the word that was clicked.
+	 */
+	async function close() {
+		if (answer === null) return;
+		const word = forget();
+		await unswap();
 		// A pane word has no button in the article to return to (Q20).
 		if (word !== null && word.source === 'article') focusWord(word);
 	}

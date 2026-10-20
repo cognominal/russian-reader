@@ -53,11 +53,13 @@ _Avoid_: scrape, extraction, raw page
 
 **Article pane**:
 The left column of the reader, holding the article. While an explanation is open it holds the
-explanation instead; the article comes back when the explanation is closed.
+explanation pane instead; the article comes back, at the offset it was left at, when the explanation is
+closed.
 _Avoid_: first pane, pane 1, Russian pane, main pane
 
 **Paragraph pane**:
-The upper block of the reader's right column, holding the English translation of the current paragraph.
+The upper block of the reader's right column, holding the English translation of the current paragraph;
+an explanation read as an origin takes it instead.
 _Avoid_: second pane, pane 2, translation pane
 
 **Sentence pane**:
@@ -69,6 +71,12 @@ _Avoid_: third pane, pane 3, pair pane
 A model-written answer about one word — what it means in this sentence, where it comes from, one
 example — in simple Russian, shown in place of the article pane until it is closed.
 _Avoid_: definition, gloss, translation, tooltip, note
+
+**Explanation pane**:
+The pane an explanation is read in: it overlays the article pane while the explanation is open, and the
+paragraph pane as well when the explanation is there as an origin. An explanation never adds a pane — it
+borrows the two that are already on screen, and they both come back when it is closed.
+_Avoid_: overlay, popup, modal, answer pane, side pane
 
 **Origin**:
 The explanation a word of another explanation was clicked in, while the explanation of that word is being
