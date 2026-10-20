@@ -472,11 +472,18 @@ consequence, not an accident.
   anywhere and a screen reader reads the answer; closing with the × or Esc returns focus to the word
   that was clicked. A Tab step does **not**: it is the step that decides where the reader is, and the
   ring would otherwise ride into the new sentence on whatever element the old position became — the
-  sentence pane's word buttons and the article's links included, so a step drops whatever focus the
-  reader left inside either pane.
+  sentence pane's word buttons, the article's links and the menubar's own buttons included, so a step
+  drops whatever focus the reader left inside the frame.
 - **Esc is layered** (Q9a, user's call, 2026-10-19): with an explanation open it closes that; with none
   open it clears the selection, as it does today; with neither, the key is left to the browser rather
   than swallowed. One key, the most recent thing first — the convention dialogs use. No second key.
+- **The menubar's popups are layers of that stack too** (Q26): an open menu is above the grammar popup,
+  so the first Escape closes the menu — and, when a row had the focus, hands the focus back to the
+  button it came from — the next closes the popup, then the answer, then the selection. ↓ and ↑ walk the
+  open menu's rows and stop there, because the page's own arrow handler walks the session's panels; a
+  `Tab` step closes a menu as it closes the overlay and then drops the focus the step supersedes, the
+  bar's own buttons included; a pointer press outside the bar closes it. A popup nothing dismisses is a
+  trap, and a menubar entry that does nothing is worse than one that says so (`disabled`).
 - Cooldown: `retryAfter` from a 200 or a 429 sets a local deadline, but the client does **not** gate on
   it — a click always sends the request, because a word asked about before is served from the cache
   without touching the window (Q3). The deadline drives the countdown line only, in whole seconds,
@@ -573,7 +580,8 @@ consequence, not an accident.
 ## 10. Layout
 
 ```text
-┌─ Объяснение слова ────────────────┬─ English translation ──────────────────────┐
+┌─ Тексты ▾ · Слова ▾ ─────────────────────────────────────────────────────────┐ ← .menubar
+├─ Объяснение слова ────────────────┬─ English translation ──────────────────────┤
 │ пороговых → пороговый  [ADJF]  ×  │ перевод абзаца, пара предложений подсвечена │ ← .en-para
 │                                   ├────────────────────────────────────────────┤
 │ Значение …                        │ RU: … пороговых … — клик по слову          │ ← .en-sentence
@@ -584,13 +592,24 @@ consequence, not an accident.
   ↑ section.pane-ru while an explanation is open; the article comes back on close
 ```
 
-- The reader's own way to another text (Q22): the article header carries one muted line under its meta
-  line — «Другие тексты:» and then every catalog entry but this one, title linked, date after it, a
-  middot between entries — so a second text is one click away instead of a URL edit. The catalog comes
-  from `loadCatalog()` in `src/lib/server/catalog.ts`, which the index's loader reads too, so the two
-  cannot disagree about which texts exist; the globs live under `$lib/server` so a client import cannot
-  pull whole articles into the browser bundle. The line lives inside the article pane, so it goes when
-  an explanation replaces it — accepted: nobody switches texts mid-answer.
+- **The menubar** (Q26, the user's request, 2026-10-20) is the first row of the frame: «Тексты» lists
+  every other text, and «Слова» lists the session's explanations. It replaced the article header's
+  «Другие тексты:» line (Q22's answer, now withdrawn): that line was the reader's only way to another
+  text and it went away whenever an explanation took the article pane, which the menubar never does.
+  The texts stay one click away instead of a URL edit, and the catalog still comes from one reader —
+  `loadCatalog()` in `src/lib/server/catalog.ts`, which the index's loader uses too, so the two cannot
+  disagree about which texts exist; the globs live under `$lib/server` so a client import cannot pull
+  whole articles into the browser bundle.
+- The words menu lists what the **session** has, never the disk cache (§6, Q26): rows are
+  `answer.word → answer.lemma` with the paragraph of an article word after them, so two asks about the
+  same word can be told apart, and the row of the panel on screen wears `aria-current="true"`. It is
+  `disabled` — greyed out, no click, `title` saying why — until an answer has arrived, and picking a row
+  is what an arrow does: `show()` from memory, no request, no window. An expired session empties it on
+  the pick instead of opening a ghost panel.
+- The bar is a row of a column flex frame (`.app`), so the two columns take what is left of the
+  viewport; at ≤ 899 px the frame is as tall as its content, the bar sticks to the top and the
+  translation column sticks directly under it, at the height the bar measures itself (`--menubar-h`),
+  rather than at a guessed constant.
 - The paragraph pane holds the article's paragraph, and in place of it the explanation a pane word came
   from while that word's explanation is on screen (Q24, §9): same pane, same scroll container, its own
   measure. One pane, two things it can be read against.
@@ -830,7 +849,9 @@ Browser (real Chromium, as the reader is verified today):
     135 paragraphs — whose header offered the essay back, and `/read/24034` served no link to itself.
     The line computed to 14.4 px in `--fg-muted`, 32 px tall at 720 px wide (the official titles wrap to
     two lines), 16 px above the legend; it is gone while an answer is open and back after Esc. The index
-    still lists both texts, through the same catalog function.
+    still lists both texts, through the same catalog function. *(Superseded 2026-10-20: the header line
+    is replaced by the menubar's texts menu — Q26, item 35 — which lists the same one text and does not
+    disappear while an answer is open.)*
 
 31. **Ran 2026-10-20**, after the user reported that walking did not put the right column back: with
     ¶20 s1 selected and «дворянское» answered (panel A), a Tab moved the pair to ¶20 s2 and dimmed the
@@ -885,6 +906,24 @@ Browser (real Chromium, as the reader is verified today):
     the request's 3 s window, which a hand-driven session cannot time — the patched `fetch` fails at the
     same layer a stopped server does, and the spec's §11 row records which line means which cause.
 
+35. **Ran 2026-10-20**, for the menubar (Q26). On a fresh `/read/66181`: the bar measured 35 px and sat
+    above both columns, «Тексты» was enabled and «Слова» was `disabled` with `title` «Ни одного
+    объяснения пока нет», and the article header no longer carried a «Другие тексты» line while the
+    article still rendered its 373 sentences. «Тексты» opened one row — the Munich speech, title and
+    date — and clicking it landed on `/read/24034`; Enter on the focused button opened the menu and put
+    the focus on that row (a real mouse click left the focus on the button), Escape closed it and gave
+    the focus back to «Тексты», and a pointer press on an article paragraph closed it too. With two
+    answers on screen (the stub provider) «Слова» was enabled and listed «История → история ¶10» and
+    «воссоединения → воссоединение ¶10» with the second wearing `aria-current="true"`; ↓ and ↑ moved
+    the focus between the rows without moving the pair and without a request; picking the other row put
+    that panel back — head «История → история», 0 further POSTs — and left the focus on the explanation
+    region; picking the row that was already current changed nothing. A `Tab` with the menu open closed
+    the menu, closed the answer and moved the pair to ¶10 s2, with the focus on `body`. At 400×700 the
+    bar stuck to the top and reported `--menubar-h: 34px`, the translation column stuck at 34 px with no
+    overlap; at 1280 px the bar is a static first row. `bun run check` 296 files / 0 errors / 0 warnings
+    — the two a11y warnings about `role="menu"` without a `tabindex` were fixed by giving each popup
+    `tabindex="-1"`.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -894,7 +933,8 @@ Browser (real Chromium, as the reader is verified today):
 - No streaming (the answer is ~120 words; a spinner is enough), no per-user accounts — the hourly
   budget is a cookie in the reader's browser, not a quota on an account — no
   multi-provider abstraction. The disk cache is not a history: it is keyed by prompt hash, nothing in
-  the UI lists it, and no prompt-version counter exists because the hash is the version.
+  the UI lists it — the words menu lists the session's panels, which is a different list (Q26) — and no
+  prompt-version counter exists because the hash is the version.
 - No change to the generated article JSON or to the pipeline beyond the per-token `proper` flag (§10).
 - No second dictionary, no base-word fallback when the lemma's page is a stub (§7.1), no lookup cache of
   its own, no etymology editing UI.
@@ -974,13 +1014,25 @@ pointers.
   reader had no way back to the catalog — not one `href`, and the title only inside the article pane —
   so the article header now lists the other texts, by title and date, one click each. The user chose
   the header over the right column and over a floating control, and direct links over a link to the
-  index; the accepted cost is that the line goes when an explanation takes the pane. See §10.
+  index; the accepted cost is that the line goes when an explanation takes the pane. **Withdrawn
+  2026-10-20** (user's request): that line is gone from the article header, and the menubar's texts menu
+  is the way to another text — always there, explanation open or not (Q26). See §10.
 - **Q24 — answered** (user's instruction, 2026-10-20): when the word being explained was itself clicked in
   an explanation, the paragraph pane shows the explanation it came from — scrolled to the field the word
   sits in, with the word washed — because the article's paragraph is no context for a word that came out of
   an explanation. The user chose this over opening the new explanation in the paragraph pane (two
   explanations at once, source on the left) and over leaving the article's paragraph on the right. In the
   same breath the user asked that walking to a panel restore the other panes: see Q23. See §9, §10.
+- **Q26 — answered** (user's request, 2026-10-20: "add a menubar, the first entry «texts» corresponds to
+  a pop up menu to access the available texts. The second entry «words» trigger a pop menu to access the
+  available explanations. It is grayed out and inactive if no explanation entry is available"): the bar
+  became the first row of the frame, «Тексты» over the other articles and «Слова» over the session's
+  explanations. The user chose the **session's** list over the disk cache (an endpoint listing
+  `EXPLAIN_CACHE_DIR` would be a new surface, and §13's non-goal says the cache is not a history), chose
+  that the bar **replaces** the article header's «Другие тексты:» line (Q22's answer, withdrawn: that
+  line went away whenever an explanation took the article pane, which a menubar does not), and chose
+  Russian labels — «Тексты» / «Слова» — against the reader's Russian chrome. Greyed out means
+  `disabled`: no click, no focus, a `title` saying «Ни одного объяснения пока нет». See §9, §10, §12.
 - **Q25 — answered** (user's report, 2026-10-20, «some problem. Should not happen, the wifi is up.
   Anyway the message should be in red»): the line was the client's own «Сервис объяснений не ответил.»,
   which is what a `fetch` that never reached the endpoint produces — a stopped or restarted server, or a

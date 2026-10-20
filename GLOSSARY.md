@@ -51,6 +51,11 @@ _Avoid_: scrape, extraction, raw page
 
 ## Reading view
 
+**Menubar**:
+The row above the panes: «Тексты», the menu of the other texts, and «Слова», the menu of the session's
+explanations — greyed out and inert while the session has none.
+_Avoid_: toolbar, navbar, top bar, header
+
 **Article pane**:
 The left column of the reader, holding the article. While an explanation is open it holds the
 explanation pane instead; the article comes back, at the offset it was left at, when the explanation is
@@ -84,3 +89,8 @@ read: it takes the paragraph pane, scrolled to the field the word sits in. A wor
 explanation has nothing to do with the article's paragraph, so the explanation it came out of is its
 context — the counterpart, for explanation panes, of the sentence pair an article word gets.
 _Avoid_: source (that is the Wiktionary text), parent, previous answer, history entry
+
+**Session**:
+One reading session: the explanations asked since the page was loaded, which ← and → walk and the words
+menu lists, and which an hour without a request ends.
+_Avoid_: history (that is the code's name for the list), visit, run

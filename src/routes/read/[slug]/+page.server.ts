@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const article = (await entry[1]()).default;
 	const { entries } = await loadCatalog();
 
-	// Every other text, newest first: what the reader's header links to, so the
+	// Every other text, newest first: what the menubar's texts menu offers, so the
 	// text being read is never offered as a link to itself.
 	return { article, others: entries.filter((e) => e.slug !== article.slug) };
 };

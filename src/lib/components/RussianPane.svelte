@@ -1,16 +1,13 @@
 <script lang="ts">
 	import { formatDate, ruRuns, sentenceGroups } from '$lib/article';
-	import type { Article, CatalogEntry, Paragraph, Selection } from '$lib/article';
+	import type { Article, Paragraph, Selection } from '$lib/article';
 
 	let {
 		article,
-		others,
 		selection,
 		onSelect
 	}: {
 		article: Article;
-		/** The catalog minus this text: the reader's own way to another one. */
-		others: CatalogEntry[];
 		selection: Selection | null;
 		onSelect: (selection: Selection) => void;
 	} = $props();
@@ -119,19 +116,6 @@
 		<span class="dot">·</span>
 		<a href={article.source.en} rel="noreferrer">en.kremlin.ru</a>
 	</p>
-	{#if others.length > 0}
-		<nav class="others" aria-label="Другие тексты">
-			Другие тексты:
-			<ul>
-				{#each others as other (other.slug)}
-					<li>
-						<a href={`/read/${other.slug}`}>{other.title.ru}</a>
-						<time datetime={other.date}>{formatDate(other.date)}</time>
-					</li>
-				{/each}
-			</ul>
-		</nav>
-	{/if}
 	<p class="legend">
 		Клик по предложению — перевод этого абзаца справа, с подсветкой нужной фразы.
 		<strong>Tab</strong> / <strong>Shift+Tab</strong> — следующее / предыдущее предложение,
@@ -169,35 +153,6 @@
 
 	.dot {
 		padding: 0 0.35rem;
-	}
-
-	/* the other texts: one line, quiet, and a middot between them — the
-	   separator has to come from the list because the items are repeated */
-	.others {
-		margin: 0 0 1rem;
-		color: var(--fg-muted);
-		font-size: 0.9rem;
-	}
-
-	.others ul {
-		display: inline;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.others li {
-		display: inline;
-	}
-
-	.others li + li::before {
-		content: '·';
-		padding: 0 0.35rem;
-	}
-
-	.others time {
-		padding-left: 0.3rem;
-		font-size: 0.9em;
 	}
 
 	.legend {

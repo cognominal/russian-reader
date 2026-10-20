@@ -6,6 +6,7 @@
 	import type { ExplainAnswer, ExplainError, ExplainRequest } from '$lib/explain';
 	import type { PaneField } from '$lib/explain-text';
 	import ExplanationPane from '$lib/components/ExplanationPane.svelte';
+	import MenuBar from '$lib/components/MenuBar.svelte';
 	import OriginPane from '$lib/components/OriginPane.svelte';
 	import RussianPane from '$lib/components/RussianPane.svelte';
 	import SentencePane from '$lib/components/SentencePane.svelte';
@@ -57,6 +58,14 @@
 	 *  Escape is a layer stack, and the popup is the topmost layer (Q19). */
 	let tooltip = $state(false);
 
+	/** Which menubar popup is up, if any. Held here for the same reason `tooltip` is:
+	 *  the menu is a layer of the Escape stack, above everything else (Q26). */
+	let menuOpen = $state<'texts' | 'words' | null>(null);
+
+	/** The menubar's height, measured by the bar itself: the narrow layout sticks the
+	 *  translation column right under it, which needs the number, not a guess. */
+	let menubarHeight = $state(0);
+
 	/**
 	 * One panel of this session: what was asked, what came back, which word it is
 	 * about, and the pair the right column was on when it was asked for — walking
@@ -80,6 +89,41 @@
 	 */
 	let history = $state<Entry[]>([]);
 	let cursor = $state(-1);
+
+	/**
+	 * The words menu's rows: the session's panels in the order they were asked, named
+	 * by the word each one is about, with the paragraph of an article word so two asks
+	 * about the same word in different paragraphs can be told apart. Empty until an
+	 * answer has arrived, which is what leaves the entry inert (Q26).
+	 */
+	const panelItems = $derived(
+		history.map((entry, i) => ({
+			word: entry.answer.word,
+			lemma: entry.answer.lemma,
+			paragraph: entry.openWord.source === 'article' ? entry.openWord.paragraph : null,
+			current: answer !== null && i === cursor
+		}))
+	);
+
+	/** A panel picked from the words menu: what an arrow does, without the arrow. */
+	async function openPanel(index: number) {
+		const entry = history[index];
+		if (entry === undefined) return;
+		// An hour of silence ended the session: the panels are dropped, and the menu
+		// empties with them, so the entry greys out rather than opening a ghost.
+		if (!sessionAlive()) {
+			history = [];
+			cursor = -1;
+			return;
+		}
+		if (answer !== null && index === cursor) return;
+		cursor = index;
+		show(entry);
+		// The menu's row was the focus, and it is gone: the pane takes it, as it does
+		// when it opens, so Esc and a screen reader work from the answer at once (Q9d).
+		await tick();
+		document.querySelector<HTMLElement>('.explain')?.focus();
+	}
 
 	// «спрашиваю…» and every pre-answer failure report next to the clicked word.
 	const note = $derived.by(() => {
@@ -130,7 +174,9 @@
 	 * the selection, and with none of them it is left to the browser. A sentence
 	 * chosen this way pins no word, any focus inside the reader is dropped, and an
 	 * explanation open in the article pane goes before the step: the key reads the
-	 * text, so it never leaves the reader on the overlay (Q6).
+	 * text, so it never leaves the reader on the overlay (Q6). A menubar popup goes
+	 * with it, and a menu closes on Escape before the popup, the answer and the
+	 * selection do (Q26).
 	 */
 	function onKeydown(event: KeyboardEvent) {
 		if (
@@ -141,12 +187,18 @@
 			!event.metaKey
 		) {
 			// Shift is left alone so the arrows still extend a selection in the text,
-			// and a key that walks no panel is left to the browser.
-			if (step(event.key === 'ArrowLeft' ? -1 : 1)) event.preventDefault();
+			// and a key that walks no panel is left to the browser. A menu that is up
+			// while an arrow walks a panel goes with it: it lists what has moved on.
+			if (step(event.key === 'ArrowLeft' ? -1 : 1)) {
+				menuOpen = null;
+				event.preventDefault();
+			}
 			return;
 		}
 		if (event.key === 'Escape') {
-			if (tooltip) tooltip = false;
+			// The topmost layer first: an open menu is above the grammar popup (Q19, Q26).
+			if (menuOpen !== null) menuOpen = null;
+			else if (tooltip) tooltip = false;
 			else if (answer !== null) void close();
 			else if (selection !== null) selection = null;
 			return;
@@ -159,6 +211,7 @@
 		// word here — the step owns where the reader is — and the panes come back
 		// exactly as Esc brings them back, so the two keys differ in nothing but what
 		// follows.
+		menuOpen = null;
 		if (answer !== null) {
 			forget();
 			void unswap();
@@ -169,13 +222,13 @@
 		if (next < 0 || next >= steps.length) return;
 
 		event.preventDefault();
-		// The step supersedes whatever held focus anywhere in the reader. Left on a
-		// word or a link, the ring rides into the new sentence on the element whose
-		// position the old one became, and the key reads as the cursor moving around
-		// a pane instead of the pair moving on (the word button `close()` focused
-		// included, which lives in the sentence pane).
+		// The step supersedes whatever held focus anywhere in the frame — the panes and
+		// the menubar both. Left on a word or a link, the ring rides into the new
+		// sentence on the element whose position the old one became, and the key reads
+		// as the cursor moving around a pane instead of the pair moving on (the word
+		// button `close()` focused included, which lives in the sentence pane).
 		const active = document.activeElement;
-		if (active instanceof HTMLElement && active.closest('.reader') !== null) active.blur();
+		if (active instanceof HTMLElement && active.closest('.app') !== null) active.blur();
 		const ref = steps[next];
 		selection = { paragraph: ref.paragraph, tokenIndex: null, sentence: ref.sentence };
 	}
@@ -442,37 +495,54 @@
 	<meta name="description" content={data.article.title.en} />
 </svelte:head>
 
-<div class="reader">
-	<section
-		class="pane pane-ru"
-		aria-label={answer === null ? 'Русский текст' : 'Объяснение слова'}
-		bind:this={pane}
-	>
-		{#if answer !== null && openWord !== null}
-			<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} onask={askPane} bind:tooltip />
-		{:else}
-			<RussianPane article={data.article} others={data.others} {selection} onSelect={select} />
-		{/if}
-	</section>
-	<aside class="pane pane-en" aria-label={origin === null ? 'English translation' : 'Откуда слово'}>
-		<div class="en-para">
-			{#if origin === null}
-				<TranslationPane article={data.article} {selection} />
+<div class="app" style="--menubar-h: {menubarHeight}px">
+	<MenuBar
+		texts={data.others}
+		panels={panelItems}
+		bind:open={menuOpen}
+		bind:height={menubarHeight}
+		onopenpanel={openPanel}
+	/>
+	<div class="reader">
+		<section
+			class="pane pane-ru"
+			aria-label={answer === null ? 'Русский текст' : 'Объяснение слова'}
+			bind:this={pane}
+		>
+			{#if answer !== null && openWord !== null}
+				<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} onask={askPane} bind:tooltip />
 			{:else}
-				<OriginPane answer={origin} mark={originMark} />
+				<RussianPane article={data.article} {selection} onSelect={select} />
 			{/if}
-		</div>
-		<div class="en-sentence">
-			<SentencePane article={data.article} {selection} onSelect={select} {openWord} {note} />
-		</div>
-	</aside>
+		</section>
+		<aside class="pane pane-en" aria-label={origin === null ? 'English translation' : 'Откуда слово'}>
+			<div class="en-para">
+				{#if origin === null}
+					<TranslationPane article={data.article} {selection} />
+				{:else}
+					<OriginPane answer={origin} mark={originMark} />
+				{/if}
+			</div>
+			<div class="en-sentence">
+				<SentencePane article={data.article} {selection} onSelect={select} {openWord} {note} />
+			</div>
+		</aside>
+	</div>
 </div>
 
 <style>
+	/* the menubar is a row of the frame, the two columns take what is left of it */
+	.app {
+		display: flex;
+		flex-direction: column;
+		height: 100dvh;
+	}
+
 	.reader {
+		flex: 1 1 auto;
+		min-height: 0;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		height: 100dvh;
 	}
 
 	.pane {
@@ -505,8 +575,13 @@
 		border-top: 1px solid var(--rule);
 	}
 
-	/* Narrow: the panes stack, the right column sits on top and stays put. */
+	/* Narrow: the panes stack, the right column sits on top and stays put — under the
+	   menubar, which keeps the top of the viewport to itself. */
 	@media (max-width: 899px) {
+		.app {
+			height: auto;
+		}
+
 		.reader {
 			display: flex;
 			flex-direction: column;
@@ -516,7 +591,7 @@
 		.pane-en {
 			order: -1;
 			position: sticky;
-			top: 0;
+			top: var(--menubar-h, 0px);
 			z-index: 2;
 			max-height: 60vh;
 			border-left: 0;

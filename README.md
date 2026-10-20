@@ -19,7 +19,7 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 | `scripts/build_article.py` | the pipeline: strip chrome → pair paragraphs → split and align sentences → rank rare words → emit JSON |
 | `src/lib/content/<slug>.json`, `articles.json` | generated, committed; loaded server-side, never shipped to the client |
 | `src/routes/read/[slug]` | the reader (`/` lists the catalog) |
-| `src/lib/components/{RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the panes and what they render |
+| `src/lib/components/{MenuBar,RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the menubar, the panes and what they render |
 | `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
 
 ## Run the app
@@ -119,6 +119,13 @@ focus ring never rides into the sentence the step lands on — it stays on `Tab`
 takes an open explanation with it: `Tab` and `Shift+Tab` put the article and the paragraph back before
 they move, so the reader never lands on the overlay. `Esc` clears the selection. The translation pane
 announces the marked sentence in a live region, so stepping works without seeing the highlight move.
+
+**The menubar** sits above the two columns. «Тексты» lists the other articles — title and date, one click
+each — and «Слова» lists the explanations this reading session has, named by the word each one is about
+and the paragraph it came from; picking one puts that panel back with no request. «Слова» is greyed out
+and takes no click until the first answer arrives, and greys out again when an hour without a request
+ends the session and drops its panels. ↓ and ↑ walk an open menu's rows, Escape closes it and hands the
+focus back to its button, and a `Tab` step closes it before it moves.
 
 ## Word explanation
 
