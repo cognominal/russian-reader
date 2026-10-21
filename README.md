@@ -22,6 +22,7 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 | `src/routes/glossary` | the glossary of grammatical terms (`/glossary`), translated and adapted from the English Wiktionary's `Appendix:Glossary` |
 | `src/lib/glossary.json`, `src/lib/glossary.ts` | its entries, and the letter index and term lookup over them |
 | `src/lib/components/{MenuBar,RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the menubar, the panes and what they render |
+| `prompts/word.md`, `prompts/word.ru.md` | the explanation prompt, in English and in Russian — one prompt twice, read at runtime (`EXPLAIN_PROMPT_PATH`) |
 | `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
 
 ## Run the app
@@ -163,10 +164,14 @@ Copy `.env.example` to `.env` and fill in the three required values; `bun run de
 `node build/index.js` run takes the variables from the process environment
 (`node --env-file=.env build/index.js`).
 
-**The prompt** is `prompts/word.md`, edited freely — it is read on every request and its placeholders
+**The prompt** is `prompts/word.md`, in English — the instructions are for the model, and the answer
+they ask for is Russian — and it is edited freely: it is read on every request, and its placeholders
 are `{{word}}`, `{{lemma}}`, `{{grammar}}`, `{{forms}}`, `{{sentence}}`, `{{translation}}`,
 `{{etymology_source}}`, `{{title}}`, `{{date}}`, `{{zipf}}` and `{{rank}}`. An unknown `{{…}}` makes the
-endpoint answer 503 rather than send a silently worse prompt.
+endpoint answer 503 rather than send a silently worse prompt. `prompts/word.ru.md` is the same prompt
+with the instructions in Russian — byte for byte what `word.md` held before it was translated — and
+`EXPLAIN_PROMPT_PATH=prompts/word.ru.md` is how you switch to it; editing either file invalidates the
+cached answers that were made with it, and only those.
 
 **The cache** is the directory in `EXPLAIN_CACHE_DIR` (default `.cache/explanations`), one JSON file
 per answer named by the sha1 of the rendered prompt plus `model|temperature|max_tokens`. Editing one

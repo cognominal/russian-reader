@@ -1,36 +1,36 @@
-Ты объясняешь одно русское слово человеку, который учит русский язык и читает тексты Кремля.
+You are explaining one Russian word to someone who is learning Russian and reads Kremlin texts.
 
-Слово в тексте: {{word}}
-Словарная форма: {{lemma}}
-Грамматика: {{grammar}} — теги pymorphy3 (OpenCorpora), через запятую и пробел. Расшифровка:
-  часть речи — NOUN, ADJF (полное прилагательное), ADJS (краткое), VERB, INFN, PRTF (причастие),
-  GRND (деепричастие), ADVB (наречие), NUMR, NPRO, PREP, CONJ, PRCL, INTJ;
-  род — masc/femn/neut, число — sing/plur, падеж — nomn/gent/datv/accs/ablt/loct,
-  время — past/pres/futr, вид — perf/impf, наклонение — indc/impr, одушевлённость — anim/inan.
-Другие формы этого слова в тексте: {{forms}}
-Предложение: {{sentence}}
-Официальный английский перевод этого предложения: {{translation}}
-Источник: {{title}}, {{date}}
-Этимология из Викисловаря: {{etymology_source}}
+The word in the text: {{word}}
+Dictionary form: {{lemma}}
+Grammar: {{grammar}} — pymorphy3 tags (OpenCorpora), comma-separated. Decoded:
+  part of speech — NOUN, ADJF (full adjective), ADJS (short), VERB, INFN, PRTF (participle),
+  GRND (gerund), ADVB (adverb), NUMR, NPRO, PREP, CONJ, PRCL, INTJ;
+  gender — masc/femn/neut, number — sing/plur, case — nomn/gent/datv/accs/ablt/loct,
+  tense — past/pres/futr, aspect — perf/impf, mood — indc/impr, animacy — anim/inan.
+Other forms of this word in the text: {{forms}}
+Sentence: {{sentence}}
+Official English translation of that sentence: {{translation}}
+Source: {{title}}, {{date}}
+Etymology from Wiktionary: {{etymology_source}}
 
-Отвечай на простом русском языке — так, как объясняют иностранцу, который читает со словарём.
-Никакого канцелярита, никаких англицизмов, никаких сокращений вроде «т.е.».
-Уровень — A2–B1: короткие предложения, самые частые слова.
-Весь ответ — по-русски: не переводи слово на английский и не давай английских пояснений.
+Answer in plain Russian — the way one explains to a foreigner reading with a dictionary.
+No officialese, no anglicisms, no abbreviations like «т.е.».
+Level A2–B1: short sentences, the most common words.
+The whole answer is in Russian: do not translate the word into English and do not explain anything in English.
 
-Что нужно:
-1. Значение — что слово значит именно здесь, в этом предложении. Если слово многозначное, назови
-   значение, которое работает в этом предложении, и одной фразой — остальные.
-2. Этимология — откуда слово пришло: исконное или заимствованное, из какого языка и когда, через
-   что прошло, какие родственные слова есть в русском.
-   Если выше есть этимология из Викисловаря (не «нет данных») — перескажи её простыми словами и
-   ничего не добавляй от себя. Если её нет — отвечай по своим знаниям, но если не уверен, скажи
-   «точных данных нет». Не выдумывай этимологию: лучше «точных данных нет», чем красивая догадка.
-3. Пример — одно короткое своё предложение с этим словом. Не бери предложение из текста.
+What is needed:
+1. Meaning — what the word means here, in this sentence. If the word has several senses, name the one
+   that works in this sentence and, in one phrase, the others.
+2. Etymology — where the word came from: native or borrowed, from which language and when, what it
+   passed through, which related words Russian has.
+   If a Wiktionary etymology is given above (not «нет данных») — retell it in simple words and add
+   nothing of your own. If there is none — answer from your own knowledge, but if you are not sure, say
+   «точных данных нет». Do not invent an etymology: «точных данных нет» beats a pretty guess.
+3. Example — one short sentence of your own with this word. Do not take a sentence from the text.
 
-Требования:
-- Если {{word}} — форма, назови начальную форму и скажи, как она образована.
-- Не пересказывай предложение целиком и не переводи его — объясняй слово.
-- Всего не больше 120 слов.
-- Ответ — только JSON, без пояснений вокруг:
+Requirements:
+- If {{word}} is an inflected form, name its initial form and say how it is formed.
+- Do not retell the sentence as a whole and do not translate it — explain the word.
+- No more than 120 words in total.
+- The answer is JSON only, with nothing around it:
   {"meaning": "…", "etymology": "…", "example": "…"}

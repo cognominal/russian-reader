@@ -96,6 +96,13 @@ One reading session: the explanations asked since the page was loaded, which ←
 menu lists, and which an hour without a request ends.
 _Avoid_: history (that is the code's name for the list), visit, run
 
+**Prompt**:
+The instruction file the explanation endpoint sends to the model as its only message — `prompts/word.md`,
+in English, with `prompts/word.ru.md` as the same prompt in Russian — rendered with the article's own
+facts in place of its `{{placeholders}}`; the answer it asks for is Russian either way.
+_Avoid_: template (it is plain text with plain substitutions), system message (there is none), instruction
+tuning
+
 **Glossary page** (Словарь):
 The reader's own dictionary of grammatical terms, one page at `/glossary`, translated and adapted from
 the English Wiktionary's `Appendix:Glossary`; the menubar's «Словарь» opens it.

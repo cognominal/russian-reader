@@ -334,44 +334,52 @@ rarest lemmas and most common words.
   documentation only: the article texts are kremlin.ru's, and the tag table in `src/lib/grammar.ts`
   stays CC BY-SA, from OpenCorpora.
 
+- Two prompts ship, and they are the same prompt twice (user's call, 2026-10-21: "the
+  `prompts/word.md` should be in English. Keep the current one as in `word.ru.md`"):
+  `prompts/word.md` is **in English** — the instructions are for the model, and the answer they ask for
+  is Russian either way — and `prompts/word.ru.md` holds the same text with the instructions in
+  Russian, byte for byte what `word.md` held before. `EXPLAIN_PROMPT_PATH` chooses between them and
+  anything else; the default is the English one. Both are read on every request, so switching is an
+  env change, not a code change. The rename changes the hash, so every answer cached before it misses
+  once (§6) — the self-versioning working as described, not a regression.
 - Initial content of `prompts/word.md` (to be edited, this is the draft to grill):
 
 ```text
-Ты объясняешь одно русское слово человеку, который учит русский язык и читает тексты Кремля.
+You are explaining one Russian word to someone who is learning Russian and reads Kremlin texts.
 
-Слово в тексте: {{word}}
-Словарная форма: {{lemma}}
-Грамматика: {{grammar}} — теги pymorphy3 (OpenCorpora), через запятую и пробел. Расшифровка:
-  часть речи — NOUN, ADJF (полное прилагательное), ADJS (краткое), VERB, INFN, PRTF (причастие),
-  GRND (деепричастие), ADVB (наречие), NUMR, NPRO, PREP, CONJ, PRCL, INTJ;
-  род — masc/femn/neut, число — sing/plur, падеж — nomn/gent/datv/accs/ablt/loct,
-  время — past/pres/futr, вид — perf/impf, наклонение — indc/impr, одушевлённость — anim/inan.
-Другие формы этого слова в тексте: {{forms}}
-Предложение: {{sentence}}
-Официальный английский перевод этого предложения: {{translation}}
-Источник: {{title}}, {{date}}
-Этимология из Викисловаря: {{etymology_source}}
+The word in the text: {{word}}
+Dictionary form: {{lemma}}
+Grammar: {{grammar}} — pymorphy3 tags (OpenCorpora), comma-separated. Decoded:
+  part of speech — NOUN, ADJF (full adjective), ADJS (short), VERB, INFN, PRTF (participle),
+  GRND (gerund), ADVB (adverb), NUMR, NPRO, PREP, CONJ, PRCL, INTJ;
+  gender — masc/femn/neut, number — sing/plur, case — nomn/gent/datv/accs/ablt/loct,
+  tense — past/pres/futr, aspect — perf/impf, mood — indc/impr, animacy — anim/inan.
+Other forms of this word in the text: {{forms}}
+Sentence: {{sentence}}
+Official English translation of that sentence: {{translation}}
+Source: {{title}}, {{date}}
+Etymology from Wiktionary: {{etymology_source}}
 
-Отвечай на простом русском языке — так, как объясняют иностранцу, который читает со словарём.
-Никакого канцелярита, никаких англицизмов, никаких сокращений вроде «т.е.».
-Уровень — A2–B1: короткие предложения, самые частые слова.
-Весь ответ — по-русски: не переводи слово на английский и не давай английских пояснений.
+Answer in plain Russian — the way one explains to a foreigner reading with a dictionary.
+No officialese, no anglicisms, no abbreviations like «т.е.».
+Level A2–B1: short sentences, the most common words.
+The whole answer is in Russian: do not translate the word into English and do not explain anything in English.
 
-Что нужно:
-1. Значение — что слово значит именно здесь, в этом предложении. Если слово многозначное, назови
-   значение, которое работает в этом предложении, и одной фразой — остальные.
-2. Этимология — откуда слово пришло: исконное или заимствованное, из какого языка и когда, через
-   что прошло, какие родственные слова есть в русском.
-   Если выше есть этимология из Викисловаря (не «нет данных») — перескажи её простыми словами и
-   ничего не добавляй от себя. Если её нет — отвечай по своим знаниям, но если не уверен, скажи
-   «точных данных нет». Не выдумывай этимологию: лучше «точных данных нет», чем красивая догадка.
-3. Пример — одно короткое своё предложение с этим словом. Не бери предложение из текста.
+What is needed:
+1. Meaning — what the word means here, in this sentence. If the word has several senses, name the one
+   that works in this sentence and, in one phrase, the others.
+2. Etymology — where the word came from: native or borrowed, from which language and when, what it
+   passed through, which related words Russian has.
+   If a Wiktionary etymology is given above (not «нет данных») — retell it in simple words and add
+   nothing of your own. If there is none — answer from your own knowledge, but if you are not sure, say
+   «точных данных нет». Do not invent an etymology: «точных данных нет» beats a pretty guess.
+3. Example — one short sentence of your own with this word. Do not take a sentence from the text.
 
-Требования:
-- Если {{word}} — форма, назови начальную форму и скажи, как она образована.
-- Не пересказывай предложение целиком и не переводи его — объясняй слово.
-- Всего не больше 120 слов.
-- Ответ — только JSON, без пояснений вокруг:
+Requirements:
+- If {{word}} is an inflected form, name its initial form and say how it is formed.
+- Do not retell the sentence as a whole and do not translate it — explain the word.
+- No more than 120 words in total.
+- The answer is JSON only, with nothing around it:
   {"meaning": "…", "etymology": "…", "example": "…"}
 ```
 
@@ -981,6 +989,19 @@ Browser (real Chromium, as the reader is verified today):
     temporary edits were reverted (`git diff --stat` is `+page.svelte`, 36 insertions, 19 deletions) and
     the final build re-verified: `bun run check` 302 files / 0 errors / 0 warnings, `bun run build`
     clean.
+
+39. **Ran 2026-10-21**, for the English prompt (the user's call: `prompts/word.md` in English, the
+    Russian text kept as `word.ru.md`). `POST /read/66181/explain` for `{source:'article', paragraph:1,
+    tokenIndex:0}` — «Недавно», ¶1, an ask that had been cached under the old prompt — answered 200 with
+    `cached:false` under the English file, as the changed text must: «Недавно» значит «несколько дней или
+    недель назад». В этом предложении оно говорит о времени…, etymology «Слово родное, не
+    заимствованное. Оно образовано от «не» и «давно»…», example «Я недавно прочитал статью Путина.» —
+    Russian throughout, JSON parsed, `etymologySource:"wiktionary"`, no 503 (so no unknown placeholder).
+    The page rendered it: the pane opened on «Недавно → недавно ADVB ×» with its three fields in Russian
+    and no console errors. Restarted with `EXPLAIN_PROMPT_PATH=prompts/word.ru.md`, the same request
+    answered `cached:true` — `word.ru.md` is byte for byte the prompt those answers were made with, and
+    switching is an env change, not a code change. Nothing under `src/` changed this round:
+    `bun run check` 302 files / 0 errors / 0 warnings.
 
 ## 13. Non-goals
 
