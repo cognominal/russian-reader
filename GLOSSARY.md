@@ -6,7 +6,9 @@ a time, one sentence at a time.
 ## Language
 
 **Article**:
-One kremlin.ru publication — a Russian original with its official English translation, read as a unit.
+A text the reader holds as a unit: a Russian original with its English side, its paragraphs paired, read
+one sentence pair at a time. Most are kremlin.ru publications with their official translations; the
+glossary is one too, with an English side built from the appendix it was adapted from.
 _Avoid_: text, document, page, transcript (a transcript is one kind of article, not the word for one)
 
 **Reader**:
@@ -19,14 +21,14 @@ _Avoid_: block, section, chunk
 
 **Sentence pair**:
 A Russian sentence together with the English sentence or sentences that translate it — one, or several
-when the official translation merges or splits.
+when the English side merges or splits.
 _Avoid_: match, pair row, couplet, alignment unit
 
 **Merge**:
-The official translation folding several Russian sentences into one English sentence.
+The English side folding several Russian sentences into one English sentence.
 
 **Split**:
-The official translation spreading one Russian sentence over several English sentences.
+The English side spreading one Russian sentence over several English sentences.
 
 **Alignment**:
 The decision, made per paragraph, of which English sentences translate which Russian sentence.
@@ -103,8 +105,9 @@ facts in place of its `{{placeholders}}`; the answer it asks for is Russian eith
 _Avoid_: template (it is plain text with plain substitutions), system message (there is none), instruction
 tuning
 
-**Glossary page** (Словарь):
-The reader's own dictionary of grammatical terms, one page at `/glossary`, translated and adapted from
-the English Wiktionary's `Appendix:Glossary`; the menubar's «Словарь» opens it.
+**Glossary** (Словарь):
+The reader's own dictionary of grammatical terms — 602 entries, translated and adapted from the English
+Wiktionary's `Appendix:Glossary` (CC BY-SA). It is an article: read at `/read/glossary`, one entry per
+paragraph, its English side in the paragraph pane; the menubar's «Словарь» opens it.
 _Avoid_: dictionary (that is what the model writes for a word), word list, `GLOSSARY.md` (that is this
 file)
