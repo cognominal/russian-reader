@@ -85,10 +85,18 @@
 	 * The session's panels, in the order they were asked, and where the reader is in
 	 * them: ← and → walk them, and asking after stepping back drops what was ahead.
 	 * The session's clock is the cookie the endpoint refreshes on every ask — an hour
-	 * without one and the panels are gone (Q20).
+	 * without one and the panels are gone (Q20) — and the page watches that hour
+	 * instead of asking about it: nothing the reader does takes the list away.
 	 */
 	let history = $state<Entry[]>([]);
 	let cursor = $state(-1);
+
+	/**
+	 * When the last answer arrived: the page's own copy of the session's clock. The
+	 * cookie holds the same number, and the page prefers it, so an ask in another tab
+	 * keeps these panels alive; a browser that keeps no cookie still gets the hour.
+	 */
+	let answeredAt = $state<number | null>(null);
 
 	/**
 	 * The words menu's rows: the session's panels in the order they were asked, named
@@ -109,13 +117,6 @@
 	async function openPanel(index: number) {
 		const entry = history[index];
 		if (entry === undefined) return;
-		// An hour of silence ended the session: the panels are dropped, and the menu
-		// empties with them, so the entry greys out rather than opening a ghost.
-		if (!sessionAlive()) {
-			history = [];
-			cursor = -1;
-			return;
-		}
 		if (answer !== null && index === cursor) return;
 		cursor = index;
 		show(entry);
@@ -367,27 +368,43 @@
 		if (cursor < history.length - 1) history = history.slice(0, cursor + 1);
 		history.push(entry);
 		cursor = history.length - 1;
+		answeredAt = Date.now();
 	}
 
-	/** The session's clock: the timestamp the endpoint refreshed on the last ask. */
-	function sessionAlive(): boolean {
+	/** When the session's hour is up, from the cookie the endpoint refreshes on every ask. */
+	function sessionEnd(): number | null {
 		const prefix = `${EXPLAIN_SESSION_COOKIE}=`;
 		const raw = document.cookie.split('; ').find((cookie) => cookie.startsWith(prefix));
-		if (raw === undefined) return false;
+		if (raw === undefined) return null;
 		const at = Number(raw.slice(prefix.length));
-		return Number.isFinite(at) && Date.now() - at < EXPLAIN_SESSION_MS;
+		return Number.isFinite(at) ? at + EXPLAIN_SESSION_MS : null;
 	}
+
+	/**
+	 * The session's hour, watched rather than asked about: the panels go when it runs
+	 * out, not when a row or an arrow is touched. A reader who picks a row means to
+	 * open it, so nothing they do may be what empties the list — the list empties
+	 * itself and «Слова» greys out with it. The panel on screen, an answer being read,
+	 * is left alone (Q20, Q26).
+	 */
+	$effect(() => {
+		const panels = history.length;
+		const asked = answeredAt;
+		if (panels === 0 || asked === null) return;
+		const end = sessionEnd() ?? asked + EXPLAIN_SESSION_MS;
+		const timer = setTimeout(() => {
+			history = [];
+			cursor = -1;
+			// The words menu lists these panels: with none left it is an empty box under a
+			// greyed button, so it goes with them.
+			menuOpen = null;
+		}, Math.max(0, end - Date.now()));
+		return () => clearTimeout(timer);
+	});
 
 	/** ← and → walk the session's panels. A remembered answer is never re-asked. */
 	function step(direction: -1 | 1): boolean {
 		if (history.length === 0) return false;
-		if (!sessionAlive()) {
-			// An hour of silence ended the session: the panels are dropped, and the one
-			// on screen — an answer being read — is left alone.
-			history = [];
-			cursor = -1;
-			return false;
-		}
 		// With the pane closed, either arrow brings back the panel it was closed on.
 		const next = answer === null ? cursor : cursor + direction;
 		if (next < 0 || next >= history.length) return false;

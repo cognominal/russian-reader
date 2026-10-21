@@ -239,9 +239,12 @@ walks past it. Said out loud because pretending otherwise is worse than the limi
 
 Set on every 200, cache hit included: a reading session, and reading a cached answer is reading. It is
 the clock behind the panel history (§9, Q20) — an hour without a request means the session those panels
-belong to is over, and the next arrow press drops them. The panel on screen, an answer being read, is
-left alone: expiring the session must not take away what the reader is looking at. A reload starts with
-no panels, which is what "the history lives in the page" means; the cookie does not pretend otherwise.
+belong to is over, and the page watches that hour: a timer armed at every answer drops the panels when
+it runs out, so the words menu empties itself and greys out on its own (revised 2026-10-21 — the page
+used to notice the hour only on the next arrow press or row pick, which made the reader's own click the
+thing that deleted their panels; issue 01). The panel on screen, an answer being read, is left alone:
+expiring the session must not take away what the reader is looking at. A reload starts with no panels,
+which is what "the history lives in the page" means; the cookie does not pretend otherwise.
 
 ## 6. Cache
 
@@ -572,10 +575,13 @@ consequence, not an accident.
   sentence pane keeps the article pair the word was asked from. `AnswerBody.svelte` renders the prose of
   an answer for both panes: the interactive pane passes `onask`, the origin copy does not, and the same
   text rendered twice would drift.
-- **The session's clock is the `explain_session` cookie** (§5): the page reads it before honouring an
-  arrow, and an hour without a request means the panels are dropped — the one on screen, an answer
-  being read, is left alone. The history lives in the page, so a reload starts with none: the cookie
-  decides the lifetime, not the storage.
+- **The session's clock is the `explain_session` cookie** (§5): the page reads it when an answer
+  arrives and arms one timer for the hour's end, and an hour without a request means the panels are
+  dropped — the one on screen, an answer being read, is left alone — with the menu that lists them
+  closed as they go. Nothing the reader does is what drops them (revised 2026-10-21, issue 01: a row
+  pick used to empty the list instead of opening the row). No cookie readable — a browser that keeps
+  none — and the answer's own time is the clock instead, so the hour still holds. The history lives in
+  the page, so a reload starts with none: the cookie decides the lifetime, not the storage.
 
 ## 10. Layout
 
@@ -606,8 +612,9 @@ consequence, not an accident.
   `answer.word → answer.lemma` with the paragraph of an article word after them, so two asks about the
   same word can be told apart, and the row of the panel on screen wears `aria-current="true"`. It is
   `disabled` — greyed out, no click, `title` saying why — until an answer has arrived, and picking a row
-  is what an arrow does: `show()` from memory, no request, no window. An expired session empties it on
-  the pick instead of opening a ghost panel.
+  is what an arrow does: `show()` from memory, no request, no window. The hour's end takes the rows
+  away by itself (the timer behind `history`), so a row that is offered is a row that opens: the pick
+  never empties the list (revised 2026-10-21, issue 01 — it used to, on a session an hour old).
 - The far right of the bar is the way out of the reader: the GitHub mark, an 18 px icon drawn in
   `currentColor` and muted until hovered, `margin-left: auto`, linking to the repository in a new tab
   (`target="_blank"` + `rel="noopener noreferrer"`). It carries the name it cannot show —
@@ -956,6 +963,25 @@ Browser (real Chromium, as the reader is verified today):
     over the bar (`aria-expanded="true"`) and Escape still closed it. The bar's height was unchanged at
     36.6 px. `bun run check` 302 files / 0 errors / 0 warnings; `bun run build` clean.
 
+38. **Ran 2026-10-21**, for issue 01 (the words menu emptying itself on a pick). Before the fix, on the
+    build item 37 measured: three rows `Недавно→недавно ¶1`, `времени`, `значит`, and one click on a row
+    left `[]` with «Слова» `disabled` and `title` «Ни одного объяснения пока нет» while the pane stayed.
+    After it, the same script — a three-row session, then
+    `document.cookie = 'explain_session=<now − 1 h − 1 s>; path=/read'`, then a pick — opened the panel
+    the row names («Недавно → недавно») with all three rows still listed and the entry still enabled.
+    Picking each of the three in turn put that panel back, ← and → still walked them with
+    `aria-current="true"` following, Escape still closed the pane and an arrow with the menu open still
+    closed the menu and walked, 0 requests. The hour itself was measured with `EXPLAIN_SESSION_MS`
+    temporarily `5_000`: two answers, a pick that opened the other panel and left both rows, and then —
+    with nothing touched — the rows gone, «Слова» greyed with its title, and the answer still on screen;
+    the same expiry with the popup open took the popup with it (`aria-expanded="false"`), and ArrowDown
+    plus Escape after it were uneventful. With `refreshSession()` temporarily commented out, so no
+    `explain_session` cookie exists at all (`document.cookie` empty), the row appeared as usual and the
+    list still emptied itself at the hour — the fallback clock. No console errors in any run. Both
+    temporary edits were reverted (`git diff --stat` is `+page.svelte`, 36 insertions, 19 deletions) and
+    the final build re-verified: `bun run check` 302 files / 0 errors / 0 warnings, `bun run build`
+    clean.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -1063,7 +1089,11 @@ pointers.
   has no morphology at runtime and no JS port of pymorphy3 exists on npm, so the model names the initial
   form itself and the header shows no chip; the history lives in the page with the `explain_session`
   cookie as its clock, so a reload starts empty; and the clickable text is the three model fields, not
-  the Wiktionary quote. See §3, §4, §5, §9, §12.
+  the Wiktionary quote. See §3, §4, §5, §9, §12. **Revised 2026-10-21** (user's report: "clicking on
+  entries in the «Слова» menu button make them disappear"): the hour is *watched* — a timer armed at
+  every answer empties the panels and greys the menu out — instead of being read off the cookie when the
+  reader happens to press an arrow or pick a row, which emptied the words menu as the price of opening
+  one of its rows. See issue 01 in `issues/`, §5's session-cookie note and §10's words-menu bullet.
 - **Q22 — answered** (user's question, 2026-10-20, "how can I switch between the proposed texts"): the
   reader had no way back to the catalog — not one `href`, and the title only inside the article pane —
   so the article header now lists the other texts, by title and date, one click each. The user chose
