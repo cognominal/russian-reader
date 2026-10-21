@@ -593,7 +593,9 @@ consequence, not an accident.
 ```
 
 - **The menubar** (Q26, the user's request, 2026-10-20) is the first row of the frame: «Тексты» lists
-  every other text, and «Слова» lists the session's explanations. It replaced the article header's
+  every other text, «Слова» lists the session's explanations, and «Словарь» is a link to the glossary
+  page — the two menus are buttons over popups, the third is an `href`, and the row cannot tell them
+  apart (Q27). It replaced the article header's
   «Другие тексты:» line (Q22's answer, now withdrawn): that line was the reader's only way to another
   text and it went away whenever an explanation took the article pane, which the menubar never does.
   The texts stay one click away instead of a URL edit, and the catalog still comes from one reader —
@@ -929,6 +931,31 @@ Browser (real Chromium, as the reader is verified today):
     — the two a11y warnings about `role="menu"` without a `tabindex` were fixed by giving each popup
     `tabindex="-1"`.
 
+36. **Ran 2026-10-21**, for the glossary page (Q27). `/glossary` served 602 entries in 31 letter groups,
+    the index offered the 28 Cyrillic letters that have entries plus `E`, `P` and `S` for the Latin
+    headwords, and the page's first entry was «аблатив (ablative case)» and its last «singularia
+    tantum». A deep link to `/glossary#ablative-case` scrolled to that entry and gave it the
+    `--accent-soft` wash; its «см. также» resolved to `#case` and `#genitive-case`. Of the 1011 «см.
+    также» references the entries carry, 841 named an entry of the glossary; the rest name concepts the
+    appendix itself does not define («словообразование», «фонетика», «ударение»), and those are dropped
+    rather than shown as dead links. The page rendered in the production build with **no console
+    error**. One worth recording: the first build threw `each_key_duplicate` at hydration («Keyed each
+    block has duplicate key `shortening` at indexes 0 and 1»), which blanked the letter index and
+    silently dropped the first five entries of group А — two «см. также» names can lead to one article
+    («сокращение» and its alias «аббревиатура»), so the loader now deduplicates the resolved
+    references by target before handing them to a keyed list. `bun run check` 302 files / 0 errors / 0
+    warnings; `bun run build` clean.
+
+37. **Ran 2026-10-21**, for the «Словарь» entry (Q26, Q27). On `/read/66181` the bar held four things of
+    which two are menus: «Тексты» and «Слова» as buttons with `aria-haspopup`, «Словарь» as an `href` of
+    `/glossary`, and the GitHub mark; the a11y tree read navigation «Меню» with `button "Тексты"`,
+    `button "Слова"` (disabled on a fresh session), `link "Словарь"` and `link "Исходный код на GitHub"`.
+    Hovering «Словарь» washed it `rgb(138, 47, 47)` at 0.12 — the same hover the buttons take — and it
+    was set in `--fg` with no underline, so the row does not tell a menu from a link. Clicking it landed
+    on `/glossary` with its 602 entries, and Back returned to the article; the words menu still opened
+    over the bar (`aria-expanded="true"`) and Escape still closed it. The bar's height was unchanged at
+    36.6 px. `bun run check` 302 files / 0 errors / 0 warnings; `bun run build` clean.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -948,6 +975,28 @@ Browser (real Chromium, as the reader is verified today):
 
 Numbering follows the grilling rounds. **Q1 and Q2 are answered** — see §2 — and stay here only as
 pointers.
+
+- **Q27 — answered** (user's request, 2026-10-21, "generate a glossary in russian translated from
+  https://en.wiktionary.org/wiki/Appendix:Glossary and adapted to the russian grammar. Later we will
+  link to it from the explanation pane and its popup entries. Mention it is adapted from the en
+  wikitionnary. It will be in the /Glossary route"): the whole appendix — 623 entries — was translated
+  into Russian and adapted to Russian grammar, and lives at `/glossary` as 602 articles (the appendix
+  names a few concepts twice, as a redirect and the article it points at, and those are one article
+  here; two pairs it keeps apart in one word — archaic/obsolete, colloquial/informal — got the two
+  words Russian uses). The page says both halves of the provenance the user asked for: adapted from the
+  English Wiktionary's `Appendix:Glossary`, named and linked, under CC BY-SA (recorded in `NOTICE`).
+  Decisions taken with the shape of the appendix in front of us: headwords, definitions, examples and
+  the index are Russian, and a handful of Latin terms (`pluralia tantum`, `sic`, `enPR`) keep their
+  Latin headword under their own index letter rather than a bucketed «Прочее»; an entry whose
+  phenomenon does not exist in Russian says so and names the nearest Russian one; the entries are
+  sorted by the Russian headword; «см. также» only links what exists; and every entry carries a stable
+  ASCII anchor for the pane to point at later (§10's anchor rule, Q26's id rule). The route is
+  lowercase `/glossary` against the user's `/Glossary` — the app's other routes are lowercase
+  (`/read/[slug]`) and URLs here are read as they are typed; say the word and the directory is renamed.
+  The same request's second half — "add glossary (in russian) in the menubar" — put «Словарь» in the
+  bar as the third entry, a plain `href` beside the two menus, so the page is reachable from the
+  reader without a URL edit (Q26's bar is the only navigation the reader has). See §12 items 36 and
+  37.
 
 - **Q2 — answered**: every token in the sentence pane is clickable *except proper nouns*, which render
   italic in both panes and are not controls. Rule B and the per-token flag are in §2 and §10.

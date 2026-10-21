@@ -13,6 +13,15 @@ Presidential Administration of Russia, are included here only as the input and
 the output of the extraction pipeline, and are not licensed by `LICENSE`. Read
 them at their source, which each dump records in its own header.
 
+Glossary terms
+--------------
+
+`src/lib/glossary.json` — the `/glossary` page's entries — is a translation and
+adaptation of the English Wiktionary's "Appendix:Glossary"
+(https://en.wiktionary.org/wiki/Appendix:Glossary), which is published under
+CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). That file
+remains under CC BY-SA, with attribution to Wiktionary and its contributors.
+
 Grammeme names
 --------------
 

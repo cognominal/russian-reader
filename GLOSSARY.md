@@ -53,8 +53,8 @@ _Avoid_: scrape, extraction, raw page
 
 **Menubar**:
 The row above the panes: «Тексты», the menu of the other texts, and «Слова», the menu of the session's
-explanations — greyed out and inert while the session has none — and, at its far end, the link to the
-reader's source on GitHub.
+explanations — greyed out and inert while the session has none — then «Словарь», the way to the
+glossary of grammatical terms, and, at its far end, the link to the reader's source on GitHub.
 _Avoid_: toolbar, navbar, top bar, header
 
 **Article pane**:
@@ -95,3 +95,9 @@ _Avoid_: source (that is the Wiktionary text), parent, previous answer, history 
 One reading session: the explanations asked since the page was loaded, which ← and → walk and the words
 menu lists, and which an hour without a request ends.
 _Avoid_: history (that is the code's name for the list), visit, run
+
+**Glossary page** (Словарь):
+The reader's own dictionary of grammatical terms, one page at `/glossary`, translated and adapted from
+the English Wiktionary's `Appendix:Glossary`; the menubar's «Словарь» opens it.
+_Avoid_: dictionary (that is what the model writes for a word), word list, `GLOSSARY.md` (that is this
+file)

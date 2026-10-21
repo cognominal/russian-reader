@@ -19,6 +19,8 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 | `scripts/build_article.py` | the pipeline: strip chrome → pair paragraphs → split and align sentences → rank rare words → emit JSON |
 | `src/lib/content/<slug>.json`, `articles.json` | generated, committed; loaded server-side, never shipped to the client |
 | `src/routes/read/[slug]` | the reader (`/` lists the catalog) |
+| `src/routes/glossary` | the glossary of grammatical terms (`/glossary`), translated and adapted from the English Wiktionary's `Appendix:Glossary` |
+| `src/lib/glossary.json`, `src/lib/glossary.ts` | its entries, and the letter index and term lookup over them |
 | `src/lib/components/{MenuBar,RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the menubar, the panes and what they render |
 | `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
 
@@ -125,8 +127,9 @@ each — and «Слова» lists the explanations this reading session has, nam
 and the paragraph it came from; picking one puts that panel back with no request. «Слова» is greyed out
 and takes no click until the first answer arrives, and greys out again when an hour without a request
 ends the session and drops its panels. ↓ and ↑ walk an open menu's rows, Escape closes it and hands the
-focus back to its button, and a `Tab` step closes it before it moves. At the far right of the bar sits
-the GitHub mark, linking to the reader's source in a new tab.
+focus back to its button, and a `Tab` step closes it before it moves. «Словарь» is the third entry, a
+plain link to the glossary of grammatical terms — the two menus open a popup, this one navigates. At
+the far right of the bar sits the GitHub mark, linking to the reader's source in a new tab.
 
 ## Word explanation
 
@@ -170,6 +173,30 @@ per answer named by the sha1 of the rendered prompt plus `model|temperature|max_
 character of the prompt or changing the model invalidates matching answers without any version counter.
 Deleting the directory is the eviction policy.
 
+## The glossary of terms
+
+`/glossary` is the reader's own dictionary of grammatical vocabulary: 602 articles — parts of speech,
+cases, tenses, verb forms, word formation, the marks a dictionary uses — each with a Russian definition
+and the English term it comes from.
+
+The vocabulary is translated and adapted from the English Wiktionary's
+[`Appendix:Glossary`](https://en.wiktionary.org/wiki/Appendix:Glossary) (CC BY-SA, see `NOTICE`). It is
+an adaptation, not a copy: headwords, definitions and examples are Russian, the entries are reworded in
+the terms Russian grammar uses, an entry whose phenomenon does not exist in Russian says so and names
+the nearest Russian one («аблатив … в современном русском его значения передаёт родительный падеж с
+предлогами *от*, *из*, *с*»), label pairs the appendix keeps in one word are told apart («архаичное» vs
+«устарелое»), and where the appendix names one concept twice — a redirect and the article it points at —
+the page keeps one entry. The index and the order are the Russian alphabet's, so a handful of Latin
+headwords (`pluralia tantum`, `sic`, `enPR`) are listed under their own letter.
+
+`src/lib/glossary.json` holds the entries (generated once, committed, like the article JSON);
+`src/lib/glossary.ts` types them, builds the letter index and matches a term to an entry, ignoring case
+and ё/е; `src/routes/glossary/+page.server.ts` resolves «см. также» on the server, so the JSON never
+reaches the browser bundle. Every entry has a stable ASCII anchor — `/glossary#accusative-case` — which
+is how the explanation pane and its popups will point at a term. The cross-references only ever link to
+entries that exist: the appendix's own vocabulary is not complete, and «словообразование» or «фонетика»
+are named by entries but have no article of their own.
+
 ## Limits
 
 - Nothing in the repo fetches pages: kremlin.ru is unreachable from this machine (TCP 443 times out from
@@ -187,5 +214,7 @@ Deleting the directory is the eviction policy.
 
 MIT for the code, the prompt and the documentation — `LICENSE`. `NOTICE` records what that does *not*
 cover: the article texts and their official translations under `data/`, `reference/` and
-`src/lib/content/` are kremlin.ru's and are here only as the pipeline's input and output, and the tag
-table in `src/lib/grammar.ts` stays CC BY-SA, from OpenCorpora.
+`src/lib/content/` are kremlin.ru's and are here only as the pipeline's input and output, the tag
+table in `src/lib/grammar.ts` stays CC BY-SA, from OpenCorpora, and the glossary in
+`src/lib/glossary.json` stays CC BY-SA, translated and adapted from the English Wiktionary's
+`Appendix:Glossary`.
