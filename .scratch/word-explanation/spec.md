@@ -142,6 +142,7 @@ Response, 200:
   "etymologySource": "wiktionary",
   "sourceText": "Происходит от гл. подрывать, из под- + рывать (рвать), далее от праслав. *rъvātī, …",
   "sourceUrl": "https://ru.wiktionary.org/wiki/%D0%BF%D0%BE%D0%B4%D1%80%D1%8B%D0%B2",
+  "sourceExists": true,
   "cached": false,
   "parsed": true,
   "retryAfter": 0,
@@ -162,8 +163,12 @@ with «нет данных» in the chip *and* in the prompt (Q18).
 
 `sourceText` is the cleaned Wiktionary text the answer was given — `null` when the lookup found
 nothing, a stub included — and `sourceUrl` is the page it came from, derived from the API URL's origin
-so offering the link never costs a second lookup. Both are computed on every request, cache hits
-included, because the lookup runs before the cache is read (Q16).
+so offering the link never costs a second lookup. `sourceExists` is a different question with its own
+answer: the Wiktionary's own `missing` fact about that page, asked of the API before the page is read
+(Q28) — `false` when the page is not there, in which case the pane greys the link out instead of
+offering a red one, and `null` when nobody could be asked, which is *unknown* and leaves the link
+live. All three are computed on every request, cache hits included, because the lookup runs before the
+cache is read (Q16).
 
 `parsed: false` means the model answered prose instead of the requested JSON: the raw text is
 returned in `meaning`, the other two fields are `null`, and the pane shows it as one block. That is
@@ -306,8 +311,20 @@ Before the model is called, the server tries to find a real etymology: a model r
 memory is the weakest part of this feature, and ru.wiktionary has something for about a third of the
 rarest lemmas and most common words.
 
-- `GET {EXPLAIN_WIKTIONARY_URL}?action=parse&page=<lemma>&prop=text&format=json&formatversion=2&redirects=1`
-  with an identifying `User-Agent` (`EXPLAIN_USER_AGENT`) — Wikimedia answers 403 to anonymous fetches.
+- Two requests, in this order (Q28), both with an identifying `User-Agent` (`EXPLAIN_USER_AGENT`) —
+  Wikimedia answers 403 to anonymous fetches:
+  - `GET {EXPLAIN_WIKTIONARY_URL}?action=query&titles=<lemma>&format=json&formatversion=2&redirects=1`
+    — **is the page there at all.** The answer is the API's own `missing` fact, the same on every WMF
+    wiki: `{"query":{"pages":[{"ns":0,"title":"неттакогослова123","missing":true}]}}` against
+    `{"query":{"pages":[{"pageid":182968,"ns":0,"title":"подрыв"}]}}` for a page that is there. The key
+    is absent when the page exists, never `false`, so the test is `missing === true` and never a falsy
+    check. Measured 2026-10-21 against `ru.wiktionary.org`.
+  - `GET {EXPLAIN_WIKTIONARY_URL}?action=parse&page=<lemma>&prop=text&format=json&formatversion=2&redirects=1`
+    — **what the page says**, and only when the first answer was not `missing`. A page that is not
+    there is never fetched.
+  - The status code and the `noarticletext` message on the 404 HTML both look like an answer and are
+    not: they are rendering details of this one wiki. `missing` is the fact, exposed identically by
+    every WMF wiki, and it is the only thing the greyed link is based on.
 - Only the `Этимология` section is taken; it ends at the next heading. Tags and the inline CSS
   Wikimedia embeds are stripped, the heading is dropped, whitespace collapsed, and the result capped at
   1200 characters.
@@ -315,17 +332,30 @@ rarest lemmas and most common words.
   after cleaning. They are the majority — 22 of the 30 rarest lemmas in 66181, 18 of 30 in 24034.
 - Any failure — timeout (`EXPLAIN_WIKTIONARY_TIMEOUT_MS`, default 4000), non-200, unparsable page —
   means «нет данных» and the prompt-only branch runs. The lookup never fails the request.
+- One deadline covers the whole lookup, not one per request: the two calls are one question, and a
+  wiki that hangs must not cost the reader the wait twice. Measured with a black-hole host
+  (`EXPLAIN_WIKTIONARY_URL=http://10.255.255.1:81/w/api.php`): the ask took 4008 ms with
+  `elapsedMs: 4002` — the second call aborts at once on the signal the first one already aborted.
+- Existence is three-valued and the third value matters: `false` only ever comes from the API's
+  `missing`, and a query nobody could answer — a timeout, a non-200, an unparsable body, a title the
+  wiki rejects as invalid — is `null`, which is *unknown*, not missing. An unknown page keeps the link
+  it had before this check existed, and the lookup still reads the page in that case, so a blip in the
+  new call can never cost the etymology itself.
 - No lookup cache of its own: the fetched text is part of the rendered prompt, so the answer cache's
   hash covers it, and the budget bounds how many misses one browser can buy.
 - **Consequence, found while implementing (Q16)**: because the hash *is* the rendered prompt and the
-  etymology is inside it, the lookup runs before the cache check — so a cache hit still costs one
-  Wiktionary GET (measured ~0.4 s), and a Wiktionary outage changes the rendered prompt, which misses
-  the cache and buys a fresh model call for a word already answered. The cookie no longer bounds those
-  fetches either, since a cache hit never consults it.
+  etymology is inside it, the lookup runs before the cache check — so a cache hit still costs Wiktionary
+  requests (measured ~0.4 s for the parse; the existence query is a second, smaller one, and a page the
+  API says is missing costs only that), and a Wiktionary outage changes the rendered prompt, which
+  misses the cache and buys a fresh model call for a word already answered. The cookie no longer bounds
+  those fetches either, since a cache hit never consults it.
 - Coverage measured 2026-10-19 on the rendered pages: 2/30 among the 30 rarest lemmas of 66181, 10/30 in
   24034, 8/9 among common words. en.wiktionary does not earn a second request (2/10).
 - The fetched text is returned in the 200 as `sourceText` and shown in the pane verbatim (Q17), with
-  `sourceUrl` as a link, so the reader can check the paraphrase against the source it credits.
+  `sourceUrl` as a link, so the reader can check the paraphrase against the source it credits. When
+  `sourceExists` is `false` the pane shows the same words greyed out — muted, no `href`, `title`
+  «Такой страницы в Викисловаре нет» — because a link to a page that is not there is an invitation to a
+  red link, and the attribution line above it already says «сгенерировано, не проверено» (Q28).
 - The **lemma** is looked up, not the clicked form: «пороговых» → «пороговый», a stub, while «порог» is
   rich. A base-word fallback would be a real improvement; it is a non-goal for now, and this is where it
   would go.
@@ -688,7 +718,7 @@ consequence, not an accident.
 | click a word, then `Tab` / `Shift+Tab` | the answer closes and the three panes come back as they were — the article at the offset it was left at, the paragraph with it — and the pair moves on by one; nothing about the word is left on screen but the panel an arrow can still walk back to (Q23) |
 | cache directory unreadable or read-only | nothing visible: the answer is still served, the entry is skipped, one log line |
 | the model spends the budget on reasoning | `finish_reason: length` or `content: null` → 502 `upstream-error`, never rendered as an answer. Prevented in the request (§8), caught here anyway |
-| Wiktionary unreachable, slow, or a stub | nothing visible: the answer is prompt-only and the source line says «сгенерировано, не проверено» |
+| Wiktionary unreachable, slow, or a stub | nothing visible: the answer is prompt-only and the source line says «сгенерировано, не проверено». The link stays live, because a wiki nobody could ask is not a wiki that said no — but when the API does say `missing`, the link is greyed out (Q28) |
 
 The line between the two halves of that table is the answer's arrival (Q11): anything that fails before
 an answer exists leaves the article alone and reports itself in the sentence pane, where the click was.
@@ -1003,6 +1033,29 @@ Browser (real Chromium, as the reader is verified today):
     switching is an env change, not a code change. Nothing under `src/` changed this round:
     `bun run check` 302 files / 0 errors / 0 warnings.
 
+40. **Ran 2026-10-21**, for the greyed link (Q28). By hand against `ru.wiktionary.org`: `action=query`
+    with `titles=подрыв` → `{"query":{"pages":[{"pageid":182968,"ns":0,"title":"подрыв"}]}}`, with
+    `titles=неттакогослова123` → `{"query":{"pages":[{"ns":0,"title":"неттакогослова123","missing":true}]}}`,
+    and `action=parse&page=неттакогослова123` → `{"error":{"code":"missingtitle",…}}` — which is why the
+    fact is read from `query` and neither from the parse's error nor from the status. Of the 200 rare
+    lemmas of 66181, asked in batches of 50, five have no page: «донецко-криворожский», «грушевский»,
+    «боброк», «бандрать», «андрусовский». In the production build on port 3222, `POST …/explain` for
+    ¶70 token 54 («Бандеру», lemma «бандрать») answered 200, `cached:false`,
+    `sourceExists:false`, `sourceUrl:"https://ru.wiktionary.org/wiki/бандрать"`, `sourceText:null`,
+    `etymologySource:"model"`; clicking that word in the page, the pane's source block held no `a` at
+    all — only `<span class="source-link missing">бандрать в Викисловаре</span>` with `title` «Такой
+    страницы в Викисловаре нет», computed `rgb(106, 101, 93)` (the muted colour), `cursor: default`,
+    `text-decoration: none`, under «сгенерировано, не проверено». ¶1 token 0 («Недавно») answered
+    `sourceExists:true` from the cache and the pane kept the live link: `<a>` in `rgb(138, 47, 47)` (the
+    accent), `target="_blank"`, no `title`, with the `<details>` quote under «по данным Викисловаря».
+    The two states that are not `false`: with `EXPLAIN_WIKTIONARY_URL=off` (port 3224) the answer had
+    `sourceUrl:null`, `sourceExists:null` and the block rendered nothing, as before; with the wiki
+    unreachable (port 3225, `http://127.0.0.1:9/w/api.php`) `sourceExists:null` with a live
+    `sourceUrl`, because unknown is not missing. With the wiki hanging (port 3226,
+    `http://10.255.255.1:81/w/api.php`) the ask took 4008 ms and `elapsedMs:4002` — one deadline for
+    both calls, not one each. No console errors in any run; `bun run check` 302 files / 0 errors / 0
+    warnings; `bun run build` clean.
+
 ## 13. Non-goals
 
 - No gloss of the *word* on hover, no word-level English alignment: the grammar chip's popup explains
@@ -1022,6 +1075,24 @@ Browser (real Chromium, as the reader is verified today):
 
 Numbering follows the grilling rounds. **Q1 and Q2 are answered** — see §2 — and stay here only as
 pointers.
+
+- **Q28 — answered** (user's call, 2026-10-21: "in the explanation pane of a word, the link to the
+  wiktionary should be grayed out when the wikt page is missing. Asking the wiktionary first for json
+  can test the existence. Use the API, not the HTML. Scraping the body for noarticletext (the MediaWiki
+  message on that 404 page) works today but is fragile and needs HTML parsing. The status code alone is
+  also weaker than it looks: it's a wiki-config rendering detail, whereas missing is the canonical
+  MediaWiki fact exposed identically by every WMF wiki"). The pane's link to the source page is live
+  only when the page is there: the endpoint asks
+  `action=query&titles=<lemma>&format=json&formatversion=2&redirects=1` **before** it reads the page and
+  takes the answer from the API's own `missing` — `{"ns":0,"title":"неттакогослова123","missing":true}`
+  against `{"pageid":182968,"ns":0,"title":"подрыв"}` — never from the response status, never from the
+  404 HTML's `noarticletext`. `missing` is absent, not `false`, when the page exists, so the test is
+  `missing === true`. A page the API says is missing is not fetched at all, and the answer carries
+  `sourceExists: false`, which greys the link out in the pane: same words, muted, no `href`, `title`
+  «Такой страницы в Викисловаре нет». Anything else — a timeout, a non-200, an unparsable body, a title
+  the wiki rejects — is `null`, *unknown*, and unknown keeps the link live and still reads the page, so
+  the new question can never cost the etymology. One `EXPLAIN_WIKTIONARY_TIMEOUT_MS` deadline covers
+  both calls. See §4, §7.1, §11 and §12 item 40.
 
 - **Q27 — answered** (user's request, 2026-10-21, "generate a glossary in russian translated from
   https://en.wiktionary.org/wiki/Appendix:Glossary and adapted to the russian grammar. Later we will
@@ -1160,7 +1231,8 @@ pointers.
   not interactive, so there is no pointer grace period and no click-to-pin. See §9, §12.
 - **Q17 — answered** (user's report, 2026-10-19): the pane shows the fetched Wiktionary text verbatim
   under a collapsed block, plus a link to the page, so «по данным Викисловаря» points at something the
-  reader can read. See §2, §4, §7.1, §9.
+  reader can read. See §2, §4, §7.1, §9. **Revised 2026-10-21**: that link is greyed out when the page
+  is not there — see Q28, which is about how the page's existence is established.
 - **Q16 — open, found while implementing**: a cache hit still performs the Wiktionary GET, because the
   key is the rendered prompt and the etymology is part of it. So a re-click costs ~0.4 s instead of a
   file read, and a Wiktionary outage changes the hash, misses the cache and spends a model call on a

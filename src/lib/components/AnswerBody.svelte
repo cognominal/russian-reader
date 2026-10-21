@@ -86,7 +86,13 @@
 			</details>
 		{/if}
 		{#if answer.sourceUrl !== null}
-			<a class="source-link" href={answer.sourceUrl} target="_blank" rel="noreferrer">{answer.lemma ?? answer.word} в Викисловаре</a>
+			{#if answer.sourceExists === false}
+				<!-- The wiki says the page is not there: a live link would be an invitation to a
+				     red link, so the same words stay, muted and inert, and the title says why. -->
+				<span class="source-link missing" title="Такой страницы в Викисловаре нет">{answer.lemma ?? answer.word} в Викисловаре</span>
+			{:else}
+				<a class="source-link" href={answer.sourceUrl} target="_blank" rel="noreferrer">{answer.lemma ?? answer.word} в Викисловаре</a>
+			{/if}
 		{/if}
 	</div>
 {/if}
@@ -172,5 +178,12 @@
 		display: inline-block;
 		margin-top: 0.5rem;
 		color: var(--accent);
+	}
+
+	/* A page the Wiktionary says is not there: the words stay, the offer goes — muted, no
+	   pointer, no underline, because there is nothing to click through to (Q28). */
+	.source-link.missing {
+		color: var(--fg-muted);
+		cursor: default;
 	}
 </style>

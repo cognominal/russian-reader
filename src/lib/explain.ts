@@ -50,6 +50,12 @@ export type ExplainAnswer = {
 	sourceText: string | null
 	/** The page `sourceText` came from, so the reader can check it themselves. */
 	sourceUrl: string | null
+	/**
+	 * Whether that page is there at all, in the Wiktionary's own words (`missing`, Q28):
+	 * `false` is a page that is not there, and the pane greys the link out. `null` means
+	 * nobody could ask — unknown is not missing, so the link stays live.
+	 */
+	sourceExists: boolean | null
 	/** Served from the disk cache rather than from a model call. */
 	cached: boolean
 	/** False when the model answered prose instead of the requested JSON. */

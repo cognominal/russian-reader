@@ -87,6 +87,16 @@ class ExplainHttpError extends Error {
 	}
 }
 
+/** What the Wiktionary knows about a lemma (Q28): the page's «Этимология», and whether it is there. */
+type Etymology = {
+	/** The cleaned section, null when the page has none — or is not there at all. */
+	text: string | null
+	/** The API's `missing` fact, inverted: `null` when the wiki could not be asked. */
+	exists: boolean | null
+}
+
+const NO_ETYMOLOGY: Etymology = { text: null, exists: null }
+
 /** Identical requests that arrive while one is running share its promise (§6). */
 const inFlight = new Map<string, Promise<CacheRecord>>()
 
@@ -218,11 +228,14 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 
 	// The fetched text is part of the rendered prompt, so it is fetched before
 	// the cache is consulted (§6). It never fails the request.
-	const etymology = await lookupEtymology(config, lookup)
+	const looked = await lookupEtymology(config, lookup)
+	const etymology = looked.text
 	const etymologySource: 'wiktionary' | 'model' = etymology ? 'wiktionary' : 'model'
 
 	// The page the fetched text came from, for the pane's own link to it: derived
-	// from the API URL, so offering the link never costs a second lookup.
+	// from the API URL's origin, so offering the link costs no second lookup. Whether
+	// it is there at all is a different question, and the wiki answers it itself —
+	// `action=query`'s `missing`, asked before the page is read (Q28).
 	const wiktionaryApi = config.wiktionaryUrl.trim()
 	let sourceUrl: string | null = null
 	if (wiktionaryApi !== '' && wiktionaryApi.toLowerCase() !== 'off') {
@@ -249,6 +262,7 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 			etymologySource: record.etymologySource,
 			sourceText: etymology,
 			sourceUrl,
+			sourceExists: looked.exists,
 			cached: true,
 			parsed: parsed.parsed,
 			retryAfter: 0,
@@ -304,6 +318,7 @@ export const POST: RequestHandler = async ({ request, params, cookies, url }) =>
 		etymologySource: fresh.etymologySource,
 		sourceText: etymology,
 		sourceUrl,
+		sourceExists: looked.exists,
 		cached: false,
 		parsed: parsed.parsed,
 		// No cooldown follows an accepted call: the budget is a count, so the wait
@@ -433,33 +448,80 @@ async function callModel(
 	}
 }
 
-async function lookupEtymology(config: Config, lemma: string): Promise<string | null> {
+/**
+ * The Wiktionary's answer about a lemma (Q28): whether the page is there at all, and the
+ * cleaned «Этимология» it holds. Existence is asked as JSON *first* — the API's own
+ * `missing` fact, the same one on every WMF wiki — because the page's status and the
+ * `noarticletext` text on the 404 HTML are rendering details of this wiki, not facts. A
+ * page that is not there is never fetched, and a query nobody answered leaves `exists`
+ * null: unknown, which is not missing.
+ */
+async function lookupEtymology(config: Config, lemma: string): Promise<Etymology> {
 	const base = config.wiktionaryUrl.trim()
-	if (base === '' || base.toLowerCase() === 'off') return null
+	if (base === '' || base.toLowerCase() === 'off') return NO_ETYMOLOGY
 
+	// One deadline for the whole lookup, not one per request: the two calls are one
+	// question, and a slow wiki must not cost the reader the wait twice.
 	const controller = new AbortController()
 	const timer = setTimeout(() => controller.abort(), config.wiktionaryTimeoutMs)
 	try {
+		const exists = await pageExists(config, base, lemma, controller.signal)
+		if (exists === false) return { text: null, exists }
+		return { text: await readEtymology(config, base, lemma, controller.signal), exists }
+	} finally {
+		clearTimeout(timer)
+	}
+}
+
+/** `action=query` → is the page there: `missing` says no, a `pageid` says yes, else unknown. */
+async function pageExists(
+	config: Config,
+	base: string,
+	lemma: string,
+	signal: AbortSignal
+): Promise<boolean | null> {
+	const payload = await apiJson(config, base, { action: 'query', titles: lemma }, signal)
+	const page = (payload as { query?: { pages?: unknown } } | null)?.query?.pages
+	const first = Array.isArray(page) ? (page[0] as { missing?: unknown; pageid?: unknown }) : undefined
+	if (first === undefined || first === null) return null
+	if (first.missing === true) return false
+	return typeof first.pageid === 'number' ? true : null
+}
+
+/** `action=parse&prop=text` → the cleaned «Этимология» of the page's HTML, or null. */
+async function readEtymology(
+	config: Config,
+	base: string,
+	lemma: string,
+	signal: AbortSignal
+): Promise<string | null> {
+	const payload = await apiJson(config, base, { action: 'parse', page: lemma, prop: 'text' }, signal)
+	const html = (payload as { parse?: { text?: unknown } } | null)?.parse?.text
+	return typeof html === 'string' ? etymologyFromPage(html) : null
+}
+
+/** One call to the wiki's API: JSON or null, never an exception — the lookup never fails a request. */
+async function apiJson(
+	config: Config,
+	base: string,
+	params: Record<string, string>,
+	signal: AbortSignal
+): Promise<unknown | null> {
+	try {
 		const url = new URL(base)
-		url.searchParams.set('action', 'parse')
-		url.searchParams.set('page', lemma)
-		url.searchParams.set('prop', 'text')
 		url.searchParams.set('format', 'json')
 		url.searchParams.set('formatversion', '2')
 		url.searchParams.set('redirects', '1')
+		for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value)
 
 		const response = await fetch(url, {
 			headers: { 'User-Agent': config.userAgent },
-			signal: controller.signal
+			signal
 		})
 		if (!response.ok) return null
-		const payload = (await response.json()) as { parse?: { text?: unknown } }
-		const html = payload.parse?.text
-		return typeof html === 'string' ? etymologyFromPage(html) : null
+		return await response.json()
 	} catch {
 		return null
-	} finally {
-		clearTimeout(timer)
 	}
 }
 

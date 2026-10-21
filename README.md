@@ -140,9 +140,10 @@ overlaying it and the paragraph pane, until it is closed (×, `Esc`, or a `Tab` 
 reader has to act on — a refusal, a missing key, an endpoint that never answered — is written next to
 the word in the error colour, while «спрашиваю…» and its cooldown stay muted. The endpoint is
 `POST /read/[slug]/explain`; it re-derives the word, lemma, sentence and translation from the article
-JSON, fetches the lemma's ru.wiktionary «Этимология», renders
-`prompts/word.md`, makes one chat-completion call, and caches the answer on disk. See
-`.scratch/word-explanation/spec.md` for the contract.
+JSON, asks ru.wiktionary whether the lemma has a page there at all — existence is the API's own
+`missing` fact, and a page that is not there gets a greyed-out link rather than a red one — fetches that
+page's «Этимология» when it is there, renders `prompts/word.md`, makes one chat-completion call, and
+caches the answer on disk. See `.scratch/word-explanation/spec.md` for the contract.
 
 Configuration (all read at runtime through `$env/dynamic/private`):
 
