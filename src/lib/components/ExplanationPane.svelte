@@ -17,6 +17,7 @@
 		message,
 		onclose,
 		onask,
+		onentry,
 		tooltip = $bindable(false)
 	}: {
 		selection: Selection | null;
@@ -31,6 +32,13 @@
 		/** A word clicked in the pane's own prose: the form, its sentence, its field. */
 		onask: (word: string, sentence: string, field: PaneField) => void;
 		/**
+		 * A code in the grammar popup whose entry the reader asked for (Q27). The page
+		 * decides what that means — here on the glossary the entry is one scroll away,
+		 * and from an article it is another document — so this pane only reports the
+		 * click.
+		 */
+		onentry: (entry: string) => void;
+		/**
 		 * Whether the grammar popup is up. The page owns it because Escape is a
 		 * layer stack there: while the popup is up, Escape closes it and not the
 		 * answer (Q19). Everything else about it lives here.
@@ -42,6 +50,30 @@
 	let chip = $state<HTMLElement | null>(null);
 	/** The chip's viewport box: the popup is fixed, so the pane cannot clip it. */
 	let at = $state<{ top: number; left: number } | null>(null);
+
+	/**
+	 * How long the popup survives the pointer leaving the chip or a focus leaving
+	 * the chip's box, in ms. It is not zero any more: the popup carries links into
+	 * the glossary (Q27), so the pointer has to be able to cross the 6px gap to it
+	 * and the keyboard has to be able to move onto one of them. Both happen inside
+	 * this window, and both cancel it.
+	 */
+	const GRACE_MS = 250;
+	let closing: ReturnType<typeof setTimeout> | null = null;
+
+	function open() {
+		if (closing !== null) clearTimeout(closing);
+		closing = null;
+		tooltip = true;
+	}
+
+	function schedule() {
+		if (closing !== null) clearTimeout(closing);
+		closing = setTimeout(() => {
+			closing = null;
+			tooltip = false;
+		}, GRACE_MS);
+	}
 
 	// Opening moves focus into the pane, so Esc works from anywhere and a screen
 	// reader reads the answer. The component mounts exactly when the pane opens
@@ -124,20 +156,46 @@
 				class="grammar"
 				bind:this={chip}
 				aria-describedby={tooltip ? 'grammar-gloss' : undefined}
-				onmouseenter={() => (tooltip = true)}
-				onmouseleave={() => (tooltip = false)}
-				onfocus={() => (tooltip = true)}
-				onblur={() => (tooltip = false)}
+				onmouseenter={open}
+				onmouseleave={schedule}
+				onfocus={open}
+				onblur={schedule}
 			>{answer.grammar}</button>
 		{/if}
 		<button type="button" class="close" onclick={onclose} title="Закрыть" aria-label="Закрыть объяснение">×</button>
 	</div>
 
 	{#if tooltip && answer.grammar !== null && at !== null}
-		<div class="gloss" id="grammar-gloss" role="tooltip" style="top: {at.top}px; left: {at.left}px">
+		<div
+			class="gloss"
+			id="grammar-gloss"
+			role="tooltip"
+			style="top: {at.top}px; left: {at.left}px"
+			onmouseenter={open}
+			onmouseleave={schedule}
+			onfocusin={open}
+			onfocusout={schedule}
+		>
 			<dl>
 				{#each tagParts(answer.grammar) as part (part.tag)}
-					<dt>{part.tag}</dt>
+					{@const entry = part.entry}
+					<dt>
+						{#if entry !== null}
+							<!-- A code the glossary explains is one click from what it means (Q27). The
+							     popup stays up while the pointer crosses the 6px gap to it, which is what
+							     the grace period is for. The href is what a middle click and a
+							     «open in a new tab» follow; the click itself is the page's to place. -->
+							<a
+								href={`/read/glossary#${entry}`}
+								onclick={(event) => {
+									event.preventDefault();
+									onentry(entry);
+								}}>{part.tag}</a
+							>
+						{:else}
+							{part.tag}
+						{/if}
+					</dt>
 					<dd>{part.gloss ?? 'признак не распознан'}</dd>
 				{/each}
 			</dl>
@@ -230,6 +288,21 @@
 		color: var(--fg-muted);
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 0.75rem;
+	}
+
+	/* a code the glossary explains: the same monospace, marked as a link rather
+	   than wearing a link's colour — the code is the reader's own tag string */
+	.gloss dt a {
+		color: inherit;
+		text-decoration: underline;
+		text-decoration-color: var(--rule);
+		text-underline-offset: 2px;
+	}
+
+	.gloss dt a:hover,
+	.gloss dt a:focus-visible {
+		color: var(--fg);
+		text-decoration-color: currentColor;
 	}
 
 	.gloss dd {

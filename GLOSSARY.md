@@ -108,6 +108,7 @@ tuning
 **Glossary** (Словарь):
 The reader's own dictionary of grammatical terms — 602 entries, translated and adapted from the English
 Wiktionary's `Appendix:Glossary` (CC BY-SA). It is an article: read at `/read/glossary`, one entry per
-paragraph, its English side in the paragraph pane; the menubar's «Словарь» opens it.
+paragraph, its English side in the paragraph pane; the menubar's «Словарь» opens it, and the grammar
+chip's popup links the codes it can into it.
 _Avoid_: dictionary (that is what the model writes for a word), word list, `GLOSSARY.md` (that is this
 file)

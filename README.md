@@ -24,6 +24,7 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 | `data/glossary/entries.json` | the glossary's authored entries: the Russian definitions, the English term each came from, and the English each entry adds to it |
 | `scripts/glossary_appendix.py` | the English Wiktionary's `Appendix:Glossary` → terms with their plain-text definitions |
 | `scripts/build_glossary.py` | the glossary's two dumps, from those entries and the fetched appendix |
+| `src/lib/grammeme-entries.json`, `scripts/check_glossary.py` | the chip popup's code → entry map, and the check that every id in it is an anchor of the built article |
 | `src/lib/components/{MenuBar,RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the menubar, the panes and what they render |
 | `prompts/word.md`, `prompts/word.ru.md` | the explanation prompt, in English and in Russian — one prompt twice, read at runtime (`EXPLAIN_PROMPT_PATH`) |
 | `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
@@ -230,6 +231,14 @@ called: not at read time, and not in the pipeline.
 one to its appendix term, and the `enText` an entry adds to it. `scripts/build_glossary.py` writes the two
 dumps from those entries and the fetched appendix, and `scripts/build_article.py` builds the article from
 the dumps like any other text.
+
+Every code in the grammar chip's popup that the glossary explains is a link to its entry:
+`src/lib/grammeme-entries.json` is the map from a pymorphy3 code to an entry id, and a code the map does
+not name — `NUMR`, `Dmns`, `Prnt` — keeps its plain gloss, because a link to an entry that does not
+explain the code is worse than no link. On the glossary itself the click is a scroll to the entry; from an
+article it is the same navigation any other link is. `scripts/check_glossary.py` is what keeps the map
+honest: it fails, naming the id, when an id the map names is not an anchor of the built article, and it
+checks the anchors themselves — unique, ASCII, one per paragraph.
 
 ## Limits
 

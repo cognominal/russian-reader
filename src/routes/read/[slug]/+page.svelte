@@ -12,9 +12,13 @@
 	import SentencePane from '$lib/components/SentencePane.svelte';
 	import TranslationPane from '$lib/components/TranslationPane.svelte';
 	import { tick } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 	let selection = $state<Selection | null>(null);
+
+	/** The glossary's slug: the article the grammar popup's codes link into (Q27). */
+	const GLOSSARY = 'glossary';
 
 	const steps = $derived(sentenceIndex(data.article));
 
@@ -496,6 +500,32 @@
 		if (pane !== null) pane.scrollTop = savedScroll;
 	}
 
+	/**
+	 * A glossary entry the grammar popup linked to (Q27). On the glossary itself the
+	 * entry is one scroll away, so nothing navigates: the answer goes, the article
+	 * comes back — which is what makes the anchor exist — and the browser's own
+	 * fragment scroll puts the entry where the reader can read it. The session's
+	 * panels and the article the reader was in are still there behind it. From an
+	 * article the link is another document, and the router's navigation is what every
+	 * other link in the app does.
+	 */
+	async function openEntry(entry: string) {
+		// The explanation belongs to the document the reader is leaving, and while it
+		// is on screen the article pane does not exist: the entry the reader asked for
+		// would have nothing to land on. `forget` rather than `close`, because closing
+		// hands focus back to the word that was clicked and that scroll would fight the
+		// entry.
+		forget();
+		if (data.article.slug === GLOSSARY) {
+			// The entry is in this document: the browser's own fragment scroll puts it
+			// where the reader can read it, and nothing navigates.
+			await tick();
+			location.hash = entry;
+			return;
+		}
+		await goto(`/read/${GLOSSARY}#${entry}`);
+	}
+
 	function focusWord(word: ArticleWord) {
 		// The line carries the paragraph, the token button only its index: the same
 		// index exists in every paragraph.
@@ -527,7 +557,7 @@
 			bind:this={pane}
 		>
 			{#if answer !== null && openWord !== null}
-				<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} onask={askPane} bind:tooltip />
+				<ExplanationPane {selection} {answer} {openWord} {asking} message={failure} onclose={close} onask={askPane} onentry={openEntry} bind:tooltip />
 			{:else}
 				<RussianPane article={data.article} {selection} onSelect={select} />
 			{/if}

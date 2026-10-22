@@ -15,12 +15,14 @@ glossary that drops one fails loudly, naming it.
 
 **Status:** ready-for-agent
 
-- [ ] A grammeme the map knows renders as a link in the chip's popup, and following it lands on that entry
+- [x] A grammeme the map knows renders as a link in the chip's popup, and following it lands on that entry
       in the article.
-- [ ] A grammeme the map does not know renders exactly as it does today: same text, same gloss, no link.
-- [ ] The map covers the grammemes the glossary actually explains, and no others.
-- [ ] The check script passes against the built article and fails, naming the missing id, when the map
+- [x] A grammeme the map does not know renders exactly as it does today: same text, same gloss, no link.
+- [x] The map covers the grammemes the glossary actually explains, and no others.
+- [x] The check script passes against the built article and fails, naming the missing id, when the map
       points at an anchor the article does not have.
-- [ ] The popup's existing behaviour is unchanged: its fourfold dismissal, Escape closing the popup before
-      the answer, and no interactive elements of its own.
-- [ ] `bun run check` reports 0 errors and 0 warnings, and `bun run build` is clean.
+- [x] The popup's behaviour is otherwise unchanged: it opens on hover and on focus, goes when the pointer
+      leaves, on blur, when a new answer arrives and on Escape — which closes it before the answer. It now
+      carries links, so the first two of those wait a 250 ms grace period instead of closing at once, which
+      is what lets the pointer cross the gap to a link and a keyboard move onto one.
+- [x] `bun run check` reports 0 errors and 0 warnings, and `bun run build` is clean.

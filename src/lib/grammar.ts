@@ -1,3 +1,5 @@
+import entryIds from './grammeme-entries.json';
+
 /**
  * What the grammar chip's codes mean, in the reader's own language.
  *
@@ -131,7 +133,24 @@ export type TagPart = {
 	tag: string
 	/** What it means, or `null` for a code this table does not know. */
 	gloss: string | null
+	/**
+	 * The glossary entry that explains this code, by its id, or `null` when the
+	 * glossary has no entry for it. A code with no entry keeps its plain gloss: a
+	 * link to an entry that does not explain the code is worse than no link.
+	 */
+	entry: string | null
 }
+
+/**
+ * Which glossary entry explains each code, by the entry's id.
+ *
+ * Authored by hand from the table above, one line per code, and read from a JSON
+ * file because `scripts/check_glossary.py` has to check it too: every id here must
+ * exist as an anchor in the built glossary article, and a regenerated glossary can
+ * drop one. A code the table above glosses but this map does not name keeps its
+ * plain gloss — `NUMR` has no entry of its own, and neither does `Dmns`.
+ */
+const ENTRY: Record<string, string> = entryIds
 
 /**
  * One entry per component, in the tag's own order: the string is already
@@ -142,13 +161,13 @@ export type TagPart = {
  * in its dictionary — so it gets its own sentence instead of a lookup.
  */
 export function tagParts(tag: string): TagPart[] {
-	if (tag === 'UNKN') return [{ tag, gloss: 'не разобрано: формы нет в словаре' }]
+	if (tag === 'UNKN') return [{ tag, gloss: 'не разобрано: формы нет в словаре', entry: null }]
 
 	const parts: TagPart[] = []
 	for (const group of tag.split(' ')) {
 		for (const part of group.split(',')) {
 			if (part === '') continue
-			parts.push({ tag: part, gloss: GLOSS[part] ?? null })
+			parts.push({ tag: part, gloss: GLOSS[part] ?? null, entry: ENTRY[part] ?? null })
 		}
 	}
 	return parts
