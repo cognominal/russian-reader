@@ -140,8 +140,10 @@
 </article>
 
 <style>
+	/* The gutter every pane's content keeps: the article pane is the one whose text
+	   has nothing of its own between it and the pane's edges. */
 	header {
-		padding-bottom: 1.25rem;
+		padding: 0 1.5rem 1.25rem;
 		margin-bottom: 1.75rem;
 		border-bottom: 1px solid var(--rule);
 	}
@@ -180,6 +182,7 @@
 	}
 
 	article {
+		padding: 0 1.5rem;
 		font-size: 1.06rem;
 		line-height: 1.75;
 		hyphens: auto;
