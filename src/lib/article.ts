@@ -17,6 +17,12 @@ export interface ArticleTitle {
 export interface ArticleSource {
 	ru: string;
 	en: string;
+	/**
+	 * One line of provenance the header renders after the links, e.g. the licence
+	 * the English side is adapted under. Absent on the kremlin.ru articles, whose
+	 * provenance is the two links themselves.
+	 */
+	note?: string;
 }
 
 export interface ArticleStats {
@@ -61,6 +67,12 @@ export type SentencePair = [ru: number, en: number[]];
 
 export interface Paragraph {
 	i: number;
+	/**
+	 * A stable ASCII id, unique within the document, that becomes the paragraph's
+	 * DOM id: `/read/<slug>#<anchor>` lands on the paragraph. Absent on articles,
+	 * whose paragraphs are not separately addressable.
+	 */
+	anchor?: string;
 	aligned: boolean;
 	ru: string;
 	en: string;
@@ -83,7 +95,12 @@ export interface RareLemma {
 export interface Article {
 	slug: string;
 	title: ArticleTitle;
-	date: string;
+	/**
+	 * The publication date, when the document has one. A document that was never
+	 * published — the glossary — has none, and the reader renders no date rather
+	 * than inventing one.
+	 */
+	date?: string;
 	source: ArticleSource;
 	stats: ArticleStats;
 	paragraphs: Paragraph[];
@@ -278,9 +295,27 @@ const RU_MONTHS = [
 	'декабря'
 ];
 
-/** Deterministic (UTC, no ICU) Russian date: `12 июля 2021`. */
-export function formatDate(iso: string): string {
+/**
+ * Deterministic (UTC, no ICU) Russian date: `12 июля 2021`. A document with no
+ * date has nothing to render, so the answer is `null` and the header leaves the
+ * element out instead of printing an empty one.
+ */
+export function formatDate(iso: string | undefined): string | null {
+	if (iso === undefined) return null;
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return iso;
 	return `${d.getUTCDate()} ${RU_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/**
+ * The label a source link wears: the URL's own host, without a leading `www.`,
+ * so a link to another site cannot read «kremlin.ru». A value that is not a URL
+ * is shown as it stands — the source line of a dump is free text.
+ */
+export function sourceHost(url: string): string {
+	try {
+		return new URL(url).host.replace(/^www\./, '');
+	} catch {
+		return url;
+	}
 }

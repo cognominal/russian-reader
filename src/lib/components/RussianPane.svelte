@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatDate, ruRuns, sentenceGroups } from '$lib/article';
+	import { formatDate, ruRuns, sentenceGroups, sourceHost } from '$lib/article';
 	import type { Article, Paragraph, Selection } from '$lib/article';
 
 	let {
@@ -18,6 +18,10 @@
 	);
 
 	let text = $state<HTMLElement | null>(null);
+
+	// The date is rendered only when the document has one: a dateless document
+	// shows no `<time>` at all, rather than one whose text is empty.
+	const date = $derived(formatDate(article.date));
 
 	// The pane is remounted whenever the explanation closes, and the page then
 	// restores the offset it saved before the swap. Centring on that remount
@@ -110,12 +114,15 @@
 <header>
 	<h1>{article.title.ru}</h1>
 	<p class="meta">
-		<time datetime={article.date}>{formatDate(article.date)}</time>
+		{#if date !== null}<time datetime={article.date}>{date}</time>
+			<span class="dot">·</span>{/if}
+		<a href={article.source.ru} rel="noreferrer">{sourceHost(article.source.ru)}</a>
 		<span class="dot">·</span>
-		<a href={article.source.ru} rel="noreferrer">kremlin.ru</a>
-		<span class="dot">·</span>
-		<a href={article.source.en} rel="noreferrer">en.kremlin.ru</a>
+		<a href={article.source.en} rel="noreferrer">{sourceHost(article.source.en)}</a>
 	</p>
+	{#if article.source.note !== undefined}
+		<p class="note">{article.source.note}</p>
+	{/if}
 	<p class="legend">
 		Клик по предложению — перевод этого абзаца справа, с подсветкой нужной фразы.
 		<strong>Tab</strong> / <strong>Shift+Tab</strong> — следующее / предыдущее предложение,
@@ -125,7 +132,7 @@
 
 <article lang="ru" bind:this={text}>
 	{#each paragraphs as { p, groups } (p.i)}
-		<p class="para" data-para={p.i}>
+		<p class="para" data-para={p.i} id={p.anchor}>
 			<!-- single line on purpose: no whitespace text nodes may be inserted between the exact slices -->
 			{#each groups as g, gi (gi)}{#if g.sentence === null}{#each g.runs as run, k (k)}<span class="txt" class:proper={run.proper}>{run.text}</span>{/each}{:else}{@const s = g.sentence}{@const isCurrent = selection?.sentence === s && selection?.paragraph === p.i}<!-- svelte-ignore a11y_no_static_element_interactions --><!-- svelte-ignore a11y_click_events_have_key_events --><span class="sent" class:tint={isCurrent} class:dim={selection?.sentence != null && !isCurrent} data-sent={s} onclick={() => { if (s !== null) choose(p, s); }}>{#each g.runs as run, k (k)}<span class="txt" class:proper={run.proper}>{run.text}</span>{/each}</span>{/if}{/each}
 		</p>
@@ -153,6 +160,14 @@
 
 	.dot {
 		padding: 0 0.35rem;
+	}
+
+	/* the provenance line, when the document carries one: quieter than the links
+	   above it, which is the order the reader needs them in */
+	.note {
+		margin: 0 0 1rem;
+		color: var(--fg-muted);
+		font-size: 0.8rem;
 	}
 
 	.legend {
