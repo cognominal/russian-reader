@@ -102,7 +102,7 @@ def header() -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--entries", type=Path, default=ROOT / "src/lib/glossary.json")
+    ap.add_argument("--entries", type=Path, default=ROOT / "data/glossary/entries.json")
     ap.add_argument("--appendix", type=Path, default=Path("/tmp/appendix_glossary.wikitext"))
     ap.add_argument("--out", type=Path, default=ROOT / "data")
     ap.add_argument("--slug", default="glossary")

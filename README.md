@@ -14,13 +14,16 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 | Path | What it is |
 | --- | --- |
 | `data/<section>-<id>-{ru,en}.txt` | page dumps: a `#` provenance header, the title, the date line, then one paragraph per line |
+| `data/wiktionary-glossary-{ru,en}.txt` | the glossary's dumps: the same header with `# date: none`, then one paragraph per entry, each line prefixed with its anchor |
 | `reference/<slug>.{ru,en}.txt` | clean texts of the first article, taken from the Wayback snapshots, kept for provenance |
 | `scripts/extract_page.py` | archived page HTML → dump (title, date, body paragraphs) |
 | `scripts/build_article.py` | the pipeline: strip chrome → pair paragraphs → split and align sentences → rank rare words → emit JSON |
 | `src/lib/content/<slug>.json`, `articles.json` | generated, committed; loaded server-side, never shipped to the client |
-| `src/routes/read/[slug]` | the reader (`/` lists the catalog) |
-| `src/routes/glossary` | the glossary of grammatical terms (`/glossary`), translated and adapted from the English Wiktionary's `Appendix:Glossary` |
-| `src/lib/glossary.json`, `src/lib/glossary.ts` | its entries, and the letter index and term lookup over them |
+| `src/routes/read/[slug]` | the reader (`/` lists the catalog; the glossary is read here too, at `/read/glossary`) |
+| `src/routes/glossary` | the old glossary page's URL, which redirects to `/read/glossary` |
+| `data/glossary/entries.json` | the glossary's authored entries: the Russian definitions, the English term each came from, and the English each entry adds to it |
+| `scripts/glossary_appendix.py` | the English Wiktionary's `Appendix:Glossary` → terms with their plain-text definitions |
+| `scripts/build_glossary.py` | the glossary's two dumps, from those entries and the fetched appendix |
 | `src/lib/components/{MenuBar,RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the menubar, the panes and what they render |
 | `prompts/word.md`, `prompts/word.ru.md` | the explanation prompt, in English and in Russian — one prompt twice, read at runtime (`EXPLAIN_PROMPT_PATH`) |
 | `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
@@ -47,6 +50,23 @@ mkdir -p data/wordlists && curl -sSL -o data/wordlists/ru_full.txt \
 The script rewrites `src/lib/content/66181.json` and merges `articles.json` (existing entries for
 other slugs are kept, newest first). It prints the paragraph/sentence/token/rare-lemma counts and the
 rarity boundary; `--count` changes the number of rare lemmas, `--wordlist` swaps the frequency list.
+
+## Rebuild the glossary
+
+```bash
+curl -H 'User-Agent: russian-reader/0.1' -o /tmp/appendix_glossary.wikitext \
+  'https://en.wiktionary.org/w/index.php?title=Appendix:Glossary&action=raw'
+.venv/bin/python scripts/build_glossary.py --appendix /tmp/appendix_glossary.wikitext
+.venv/bin/python scripts/build_article.py glossary
+```
+
+The first script writes `data/wiktionary-glossary-{ru,en}.txt` and refuses to write a wrong document: a
+label that matches no appendix term and writes no English of its own, an empty `enText`, a duplicate or
+non-ASCII `id`, and an empty definition each stop it with the entry named. It also lists the entries whose
+Russian definition names Russian and which add nothing, so a maintainer can re-read them when the Russian
+text changes. The appendix is fetched at build time and never committed — only the dumps it produced are.
+The second script is the ordinary pipeline, and leaves `articles.json` alone: a document with no date has
+no place in a list ordered by date.
 
 ## Adding another article
 
@@ -129,7 +149,7 @@ and the paragraph it came from; picking one puts that panel back with no request
 and takes no click until the first answer arrives, and greys out again when an hour without a request
 ends the session and drops its panels. ↓ and ↑ walk an open menu's rows, Escape closes it and hands the
 focus back to its button, and a `Tab` step closes it before it moves. «Словарь» is the third entry, a
-plain link to the glossary of grammatical terms — the two menus open a popup, this one navigates. At
+plain link to the glossary article — the two menus open a popup, this one navigates. At
 the far right of the bar sits the GitHub mark, linking to the reader's source in a new tab.
 
 ## Word explanation
@@ -181,27 +201,35 @@ Deleting the directory is the eviction policy.
 
 ## The glossary of terms
 
-`/glossary` is the reader's own dictionary of grammatical vocabulary: 602 articles — parts of speech,
-cases, tenses, verb forms, word formation, the marks a dictionary uses — each with a Russian definition
-and the English term it comes from.
+`/read/glossary` is the reader's own dictionary of grammatical vocabulary: 602 entries — parts of speech,
+cases, tenses, verb forms, word formation, the marks a dictionary uses — one entry per paragraph, in
+Russian alphabetical order, each with its English side in the paragraph pane. It is an article like any
+other: a word of an entry is clickable in the sentence pane and explained the way a word of any article
+is, Tab walks it, and every paragraph carries the entry's stable ASCII anchor —
+`/read/glossary#accusative-case`. `/glossary` redirects to it, and the menubar's «Словарь» opens it.
 
-The vocabulary is translated and adapted from the English Wiktionary's
-[`Appendix:Glossary`](https://en.wiktionary.org/wiki/Appendix:Glossary) (CC BY-SA, see `NOTICE`). It is
-an adaptation, not a copy: headwords, definitions and examples are Russian, the entries are reworded in
-the terms Russian grammar uses, an entry whose phenomenon does not exist in Russian says so and names
-the nearest Russian one («аблатив … в современном русском его значения передаёт родительный падеж с
-предлогами *от*, *из*, *с*»), label pairs the appendix keeps in one word are told apart («архаичное» vs
-«устарелое»), and where the appendix names one concept twice — a redirect and the article it points at —
-the page keeps one entry. The index and the order are the Russian alphabet's, so a handful of Latin
-headwords (`pluralia tantum`, `sic`, `enPR`) are listed under their own letter.
+The Russian side is an adaptation of the English Wiktionary's
+[`Appendix:Glossary`](https://en.wiktionary.org/wiki/Appendix:Glossary) (CC BY-SA, see `NOTICE`), not a
+copy: headwords, definitions and examples are Russian, the entries are reworded in the terms Russian
+grammar uses, an entry whose phenomenon does not exist in Russian says so and names the nearest Russian
+one («аблатив … в современном русском его значения передаёт родительный падеж с предлогами *от*, *из*,
+*с*»), label pairs the appendix keeps in one word are told apart («архаичное» vs «устарелое»), and where
+the appendix names one concept twice — a redirect and the article it points at — the entries keep one.
+The order is the Russian alphabet's, so a handful of Latin headwords (`pluralia tantum`, `sic`, `enPR`)
+are listed under their own letter.
 
-`src/lib/glossary.json` holds the entries (generated once, committed, like the article JSON);
-`src/lib/glossary.ts` types them, builds the letter index and matches a term to an entry, ignoring case
-and ё/е; `src/routes/glossary/+page.server.ts` resolves «см. также» on the server, so the JSON never
-reaches the browser bundle. Every entry has a stable ASCII anchor — `/glossary#accusative-case` — which
-is how the explanation pane and its popups will point at a term. The cross-references only ever link to
-entries that exist: the appendix's own vocabulary is not complete, and «словообразование» or «фонетика»
-are named by entries but have no article of their own.
+The English side is the appendix's own text wherever the Russian entry is a translation of it — a primary
+source, and 389 of the 602 entries use it verbatim — and where the Russian entry states something about
+Russian that the appendix does not, the missing material is written in English and kept in the entry as
+`enText`. 229 entries name Russian in their definition: 213 of them needed material, and the other 16 are
+facts the appendix already states (`copula` says Arabic, Hebrew and Russian use a null copula). The
+paragraph then reads `english headword — the appendix's text. The Russian-specific sentence.` No model is
+called: not at read time, and not in the pipeline.
+
+`data/glossary/entries.json` holds the entries — the Russian definitions, the `en` label that joins each
+one to its appendix term, and the `enText` an entry adds to it. `scripts/build_glossary.py` writes the two
+dumps from those entries and the fetched appendix, and `scripts/build_article.py` builds the article from
+the dumps like any other text.
 
 ## Limits
 
@@ -222,5 +250,5 @@ MIT for the code, the prompt and the documentation — `LICENSE`. `NOTICE` recor
 cover: the article texts and their official translations under `data/`, `reference/` and
 `src/lib/content/` are kremlin.ru's and are here only as the pipeline's input and output, the tag
 table in `src/lib/grammar.ts` stays CC BY-SA, from OpenCorpora, and the glossary in
-`src/lib/glossary.json` stays CC BY-SA, translated and adapted from the English Wiktionary's
-`Appendix:Glossary`.
+`data/glossary/entries.json` and its dumps stay CC BY-SA, translated and adapted from the English
+Wiktionary's `Appendix:Glossary`.

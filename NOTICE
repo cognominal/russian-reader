@@ -16,11 +16,13 @@ them at their source, which each dump records in its own header.
 Glossary terms
 --------------
 
-`src/lib/glossary.json` — the `/glossary` page's entries — is a translation and
-adaptation of the English Wiktionary's "Appendix:Glossary"
+`data/glossary/entries.json` — the glossary article's entries — is a translation
+and adaptation of the English Wiktionary's "Appendix:Glossary"
 (https://en.wiktionary.org/wiki/Appendix:Glossary), which is published under
 CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). That file
-remains under CC BY-SA, with attribution to Wiktionary and its contributors.
+remains under CC BY-SA, with attribution to Wiktionary and its contributors, and
+so do the English sides written into it and the dumps built from it
+(`data/wiktionary-glossary-{ru,en}.txt`).
 
 Grammeme names
 --------------

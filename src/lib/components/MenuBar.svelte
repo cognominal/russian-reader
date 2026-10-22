@@ -148,8 +148,8 @@
 		{/if}
 	</div>
 
-	<!-- The glossary is one page, so its entry is a link where the other two are menus (Q27) -->
-	<a class="tab" href="/glossary" title="Словарь грамматических терминов">Словарь</a>
+	<!-- The glossary is an article, so its entry is a link where the other two are menus (Q27) -->
+	<a class="tab" href="/read/glossary" title="Словарь грамматических терминов">Словарь</a>
 
 	<!-- The way to the source: the bar's only exit from the app (Q26) -->
 	<a
@@ -202,7 +202,7 @@
 		background: var(--accent-soft);
 	}
 
-	/* «Тексты» and «Слова» are buttons over popups, «Словарь» is a link to its page:
+	/* «Тексты» and «Слова» are buttons over popups, «Словарь» is a link to the article:
 	   the same row, the same hover, the same size */
 	.tab {
 		display: inline-block;

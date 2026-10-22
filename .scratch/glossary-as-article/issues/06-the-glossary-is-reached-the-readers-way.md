@@ -15,12 +15,12 @@ rather than the page.
 
 **Status:** ready-for-agent
 
-- [ ] `/glossary` redirects permanently to `/read/glossary`.
-- [ ] The menubar's «Словарь» opens the article.
-- [ ] The glossary page component, its server load, and the data layer's letter index and term lookup are
+- [x] `/glossary` redirects permanently to `/read/glossary`.
+- [x] The menubar's «Словарь» opens the article.
+- [x] The glossary page component, its server load, and the data layer's letter index and term lookup are
       gone, with no import and no link left pointing at them.
-- [ ] The authored entries live under the pipeline's input, and nothing in the app imports them.
-- [ ] `NOTICE` and the README name the entries file where it now lives, and the README's glossary section
+- [x] The authored entries live under the pipeline's input, and nothing in the app imports them.
+- [x] `NOTICE` and the README name the entries file where it now lives, and the README's glossary section
       describes the article rather than the page.
-- [ ] `bun run check` reports 0 errors and 0 warnings, `bun run build` is clean, and no route, component
+- [x] `bun run check` reports 0 errors and 0 warnings, `bun run build` is clean, and no route, component
       or menubar entry still points at the deleted page.

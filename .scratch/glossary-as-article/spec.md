@@ -147,6 +147,12 @@ which has promised a link into the glossary since Q27 and never had one, gets it
   2. the Russian entry says something the appendix does not → the appendix's text with the Russian-specific
      material written in, authored once and committed beside the entry;
   3. the appendix has no entry for it → the English side is authored whole.
+- **The three compose as one paragraph**: `english headword — the appendix's text. the entry's own
+  English.` The appendix's text stays verbatim and reviewable instead of being rewritten around the
+  addition, and the addition is a field of the entry rather than a copy of the primary source. Measured
+  when the entries were authored: **case 1 is 389 entries, case 2 is 213, case 3 is none** — after the
+  corrected labels every one of the 602 entries joins an appendix term, so nothing had to be authored
+  whole.
 - **Measured before writing this spec**, so the size of each case is known: 601 unique `en` labels against
   the appendix's 622 terms and 607 anchors — **589 match verbatim**; **11 resolve to a real appendix entry
   under a different displayed term** (the label took the Wikipedia-link title or an anchor instead of the
@@ -156,15 +162,22 @@ which has promised a link into the glossary since Q27 and never had one, gets it
   speech`→anchor `womens speech`, `CJK`→**CJKV**, `ʾIʿrab ʾiʿrāb`→**ʾiʿrāb**, `men's speech`→anchor
   `men’s speech`); and **one has no English term at all** — `tashif`, whose appendix entry is headworded
   in Arabic (`{{anchor|tashif}} {{m|ar|صحف|تَصْحِيف}}`).
-- **The `en` field is the join key**, and the 11 mismatched labels are corrected in the authored data as
-  part of this work. Rejected: fuzzy title matching at generation time — it would silently pair the wrong
-  entry, which is the one failure the paragraph pane cannot recover from.
+- **The `en` field is the join key**, and the mismatched labels are corrected in the authored data as
+  part of this work — **15 of them**: the 11 above, the four symbol entries (`*`, `**`, `[ ]`, `†`, whose
+  labels were the symbols and are now the names the appendix declares for them), and `jam`, whose label
+  was not a different spelling but a different term (`or`, which matched the appendix's `defective`
+  through a stray anchor on its line). Rejected: fuzzy title matching at generation time — it would
+  silently pair the wrong entry, which is the one failure the paragraph pane cannot recover from.
 - **160 entries' definitions mention Russian** (measured by searching `def` for «в русском»), and they are
   not all illustrations — some are outright divergences (`article`: «В русском артикля нет…»;
   `comitative-case`: «В русском такого падежа нет, и его значение передаёт родительный»; `perfective` adds
   the «он сел» contrast). Those entries are case 2. The divergence is **not marked anywhere in the data
   today** — it lives in the prose of `def` — so the authored English for a case-2 entry is what makes it
-  explicit and reviewable.
+  explicit and reviewable. Authored against a wider signal — the definition naming Russian at all
+  (`русск`, `по-русски`, `в русском`) — the worklist was **229 entries, of which 213 needed material and
+  16 did not**: `copula` already says Arabic, Hebrew and Russian use a null copula, `relational` already
+  gives «ку́рица»/«кури́ный». The 16 are what the producer lists on every run, because they are the entries
+  a maintainer has to re-read when the Russian text changes.
 - **The appendix is fetched once, at generation time, and not committed** — the same treatment the kremlin
   pages get (only their dumps are committed). Its provenance is recorded in the dump header and in
   `NOTICE`.
