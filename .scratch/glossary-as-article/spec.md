@@ -283,7 +283,8 @@ which has promised a link into the glossary since Q27 and never had one, gets it
   glossary article renders exactly as badly as any other.
 - **The 602 entries' Russian text is not edited** beyond the 11 corrected `en` labels. The glossary's own
   wording, its aliases and its cross-references are the adaptation that already exists.
-- **No ADR is written by this spec** — the offer stands (see Further Notes) and is the user's to accept.
+- **No ADR is written by the spec itself** — the decision is recorded in
+  `docs/adr/0001-the-glossary-is-an-article.md`, which ticket 08 creates.
 
 ## Further Notes
 
@@ -302,13 +303,12 @@ the glossary's English side (which is sourced from Wiktionary where it exists an
 not) and should be read as "the English side the document carries" when the document is not a kremlin.ru
 publication.
 
-### ADR offer
+### ADR
 
-This decision meets the three tests a decision should meet before it is recorded: it is hard to reverse
-(the content shape, the pipeline's dump format and the reader's contract all move), it is surprising
-without context (a grammar glossary rendered as a dateless article whose English side is sometimes the
-Wiktionary's text and sometimes not), and it came out of a real trade-off with rejected alternatives
-recorded above. `docs/adr/` does not exist yet; the offer is to create it with this decision as 0001.
+Recorded as `docs/adr/0001-the-glossary-is-an-article.md`: the decision, the alternatives that lost and
+why, and the consequences a future reader would not guess. The spec above stays the full record — its
+measurements, its run items, its rejected alternatives — and the ADR is the part of it worth reading
+before changing the code.
 
 ### Measurements behind the decisions
 

@@ -1,6 +1,6 @@
 # 08: Record the decision as an ADR
 
-**Spec:** `.scratch/glossary-as-article/spec.md` — Further Notes, *ADR offer*.
+**Spec:** `.scratch/glossary-as-article/spec.md` — Further Notes, *ADR*.
 
 **What to build:** `docs/adr/` is created with its first record: the glossary is an article, read at
 `/read/glossary`, one paragraph per entry, with no publication date, kept out of «Тексты», its English
@@ -15,9 +15,9 @@ glossary is a dateless article whose English side is sometimes sourced and somet
 
 **Status:** ready-for-agent
 
-- [ ] `docs/adr/` exists with the record as its first entry, in the repo's documentation voice.
-- [ ] The record states the decision, the alternatives rejected with the reason each lost, and the
+- [x] `docs/adr/` exists with the record as its first entry, in the repo's documentation voice.
+- [x] The record states the decision, the alternatives rejected with the reason each lost, and the
       consequences a future reader would not guess.
-- [ ] The record points at the spec rather than restating it.
-- [ ] The spec's Further Notes no longer describe the ADR as an outstanding offer, and the record's number
+- [x] The record points at the spec rather than restating it.
+- [x] The spec's Further Notes no longer describe the ADR as an outstanding offer, and the record's number
       and path are what the spec points at.

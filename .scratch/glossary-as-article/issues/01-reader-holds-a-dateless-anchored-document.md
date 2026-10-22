@@ -16,12 +16,12 @@ keeps the behaviour the word-explanation spec measured.
 
 **Status:** ready-for-agent
 
-- [ ] A hand-written article whose paragraphs carry anchors renders with an id on each paragraph element,
+- [x] A hand-written article whose paragraphs carry anchors renders with an id on each paragraph element,
       and `/read/<slug>#<anchor>` scrolls to that paragraph.
-- [ ] A document with no date renders no date at all — no empty `<time>`, no invented value — while an
+- [x] A document with no date renders no date at all — no empty `<time>`, no invented value — while an
       article that has one renders exactly as before.
-- [ ] A document whose sources are not kremlin.ru shows link labels taken from each URL's own host.
-- [ ] A document carrying a provenance note renders it; a document without one renders nothing extra.
-- [ ] Both existing kremlin.ru articles read exactly as before: same header, same date, same source
+- [x] A document whose sources are not kremlin.ru shows link labels taken from each URL's own host.
+- [x] A document carrying a provenance note renders it; a document without one renders nothing extra.
+- [x] Both existing kremlin.ru articles read exactly as before: same header, same date, same source
       labels, no paragraph ids.
-- [ ] `bun run check` reports 0 errors and 0 warnings, and `bun run build` is clean.
+- [x] `bun run check` reports 0 errors and 0 warnings, and `bun run build` is clean.

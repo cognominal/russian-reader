@@ -15,11 +15,11 @@ would turn a broken kremlin.ru dump into a dateless article instead of an error.
 
 **Status:** ready-for-agent
 
-- [ ] A dump pair whose header declares no date builds without error, and the emitted article carries no
+- [x] A dump pair whose header declares no date builds without error, and the emitted article carries no
       date field.
-- [ ] A dump pair with no date line and no declaration fails with the same message it fails with today.
-- [ ] Every paragraph of the emitted article carries the anchor its own dump line named.
-- [ ] A note line in the dump's header reaches the emitted document's provenance note.
-- [ ] Building this document leaves the catalog untouched, while building a kremlin.ru article still adds
+- [x] A dump pair with no date line and no declaration fails with the same message it fails with today.
+- [x] Every paragraph of the emitted article carries the anchor its own dump line named.
+- [x] A note line in the dump's header reaches the emitted document's provenance note.
+- [x] Building this document leaves the catalog untouched, while building a kremlin.ru article still adds
       its entry and re-sorts the catalog.
-- [ ] The emitted document renders in the reader: no date, anchors reachable by fragment, the note shown.
+- [x] The emitted document renders in the reader: no date, anchors reachable by fragment, the note shown.
