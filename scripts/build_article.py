@@ -8,12 +8,12 @@ Input (per article, `president-news-<id>-<lang>.txt` in data/): plain-text dumps
 of the presidential page, one paragraph per line, page chrome still attached.
 
 Two shapes are valid, and a dump's own header says which one it is. The kremlin.ru
-page: chrome above the body, a date line that locates it, markers that end it. A
-document with no date — the grammar glossary — declares `# date: none` in its
+page: chrome above the body, a date line that locates it, markers that end it. An
+article with no date — the grammar glossary — declares `# date: none` in its
 header, and is then read as the title on the first line and the body from the
 second, every line prefixed with its anchor and a tab. A dump that declares nothing
 and has no date line still fails, so a kremlin.ru dump that lost its date line is
-an error rather than a dateless article. A document with no date is not merged into
+an error rather than a dateless article. An article with no date is not merged into
 the catalog: that list is the kremlin.ru texts, ordered by date.
 
 Run:
@@ -56,10 +56,9 @@ EN_BODY_END = ("Geography", "Topics", "Publication status")
 RU_SIGNATURE = re.compile(r"^[А-ЯЁ]\.\s?[А-ЯЁ][а-яё]+$")
 
 # --- the dateless declaration ------------------------------------------------
-# A document that was never published says so in its own header, and only then is
+# An article that was never published says so in its own header, and only then is
 # a dump with no date line valid. Inferring the shape from a missing date line
 # would read a broken kremlin.ru dump as a dateless article.
-DATE_DECLARATION = re.compile(r"^#\s*date:\s*(\S+)\s*$")
 DATELESS = "none"
 ANCHOR_LINE = re.compile(r"^(?P<anchor>\S+)\t(?P<text>.+)$")
 
@@ -80,25 +79,32 @@ def text_lines(path: Path) -> list[str]:
     return [l for l in lines if l and not l.startswith("#")]
 
 
-def declares_dateless(path: Path) -> bool:
-    """Whether the dump's header declares that the document has no date."""
+def header_value(path: Path, key: str) -> str | None:
+    """The value of the dump's `# <key>: <value>` header line, or `None` when the
+    header states no such key. The header is the only place a dump declares what it
+    is, so everything that reads it goes through here."""
+    pattern = re.compile(rf"^#\s*{re.escape(key)}:\s*(.+?)\s*$")
     for line in header_lines(path):
-        m = DATE_DECLARATION.match(line)
+        m = pattern.match(line)
         if m:
-            if m.group(1) != DATELESS:
-                raise SystemExit(f"{path}: unknown date declaration `{line.strip()}`")
-            return True
-    return False
+            return m.group(1)
+    return None
+
+
+def declares_dateless(path: Path) -> bool:
+    """Whether the dump's header declares that the article has no date."""
+    declared = header_value(path, "date")
+    if declared is None:
+        return False
+    if declared != DATELESS:
+        raise SystemExit(f"{path}: unknown date declaration `# date: {declared}`")
+    return True
 
 
 def note_for(path: Path) -> str | None:
     """The provenance line the dump's header carries — the licence the English side
     is adapted under, for the glossary — or `None` when it states none."""
-    for line in header_lines(path):
-        m = re.match(r"#\s*note:\s*(.+?)\s*$", line)
-        if m:
-            return m.group(1)
-    return None
+    return header_value(path, "note")
 
 # --- sentences ---------------------------------------------------------------
 ABBREV = {
@@ -345,10 +351,9 @@ def dump_path(data: Path, slug: str, lang: str) -> Path:
 
 def source_for(path: Path, lang: str, slug: str) -> str:
     """The page URL recorded in the dump's `# source:` header, else the old guess."""
-    for line in header_lines(path):
-        m = re.match(r"#\s*source:\s*(\S+)\s*$", line)
-        if m:
-            return m.group(1)
+    declared = header_value(path, "source")
+    if declared is not None:
+        return declared
     host = "en.kremlin.ru" if lang == "en" else "kremlin.ru"
     return f"http://{host}/events/president/news/{slug}"
 
@@ -374,7 +379,7 @@ def main() -> int:
         raise SystemExit(f"paragraph count mismatch: ru={len(ru_lines)} en={len(en_lines)}")
 
     # The two dumps are paired by position, so their anchors have to be the same
-    # anchors in the same order: a document whose halves drifted apart would pair
+    # anchors in the same order: an article whose halves drifted apart would pair
     # every entry with the wrong side of the next one, and count alone would not
     # notice.
     for n, ((ru_anchor, _), (en_anchor, _)) in enumerate(zip(ru_lines, en_lines), start=1):
@@ -535,7 +540,7 @@ def main() -> int:
         "slug": slug,
         "title": {"ru": title_for(ru_path, "ru"), "en": title_for(en_path, "en")},
     }
-    # A dateless document carries no date key at all: `null` would render as 1970.
+    # A dateless article carries no date key at all: `null` would render as 1970.
     if date is not None:
         article["date"] = date
     article["source"] = source
@@ -559,7 +564,7 @@ def main() -> int:
     out_path = args.out / f"{slug}.json"
     out_path.write_text(json.dumps(article, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     catalog = args.out / "articles.json"
-    # The catalog is the kremlin.ru texts, ordered by date. A document with no date
+    # The catalog is the kremlin.ru texts, ordered by date. An article with no date
     # has no place in that order, and the reader skips it for the same reason —
     # one rule in both places rather than a flag that could disagree with it.
     if date is None:

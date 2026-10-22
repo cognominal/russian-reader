@@ -12,7 +12,7 @@ the grammar chip's popup had promised and never had.
 
 The decision's second half is about the English side, which is the one place this article differs
 from every other one. Where the Russian entry is a translation of the appendix's entry, the
-appendix's own text is the English side, verbatim: it is a primary source, and 589 of the 602
+appendix's own text is the English side, verbatim: it is a primary source, and 389 of the 602
 entries have one. Where the Russian entry states something about Russian that the appendix does not
 — that Russian has no such case, that a Russian form carries the meaning, that a Russian textbook
 marks stress this way — the missing material is written in English, once, and committed beside the
@@ -22,7 +22,7 @@ not in the pipeline, which imports only `pymorphy3` and `wordfreq`.
 ## Considered Options
 
 - **602 articles, one per term.** Rejected: the glossary's 1,011 «см. также» references are same-page
-  anchors today, and every one of them would become cross-document navigation; the letter index would
+  anchors today, and every one of them would become cross-article navigation; the letter index would
   become a 602-row menu; and «Тексты» would turn into an index of one-definition texts.
 - **A model translating the entries at read time.** Rejected: the reader would wait on a model for its
   first paint, and a model's output is not reviewable as data — a wrong pairing is exactly the failure
@@ -35,7 +35,7 @@ not in the pipeline, which imports only `pymorphy3` and `wordfreq`.
   every date-ordered surface forever). The article's `date` became optional instead, and the reader
   renders no date at all.
 - **Listing the glossary in «Тексты».** Rejected: «Тексты» means the kremlin.ru publications, and
-  «Словарь» is the glossary's own door. A dateless document has no place in a list ordered by date, in
+  «Словарь» is the glossary's own door. A dateless article has no place in a list ordered by date, in
   the pipeline and in the reader's fallback alike.
 - **Keeping `/glossary` beside the article.** Rejected: one glossary in the codebase, not two. The page,
   its renderer and the letter-index half of its data layer are deleted.
@@ -43,15 +43,15 @@ not in the pipeline, which imports only `pymorphy3` and `wordfreq`.
 ## Consequences
 
 - The article's `date`, `paragraph.anchor` and `source.note` are optional in the content contract, and
-  the pipeline reads a dump that declares `# date: none` as a document with no date line. The
+  the pipeline reads a dump that declares `# date: none` as an article with no date line. The
   declaration is explicit on purpose: inferring the shape from a missing date line would turn a broken
   kremlin.ru dump into a dateless article instead of an error.
-- The glossary is the longest document the reader holds — 602 paragraphs, several megabytes of JSON —
+- The glossary is the longest article the reader holds — 602 paragraphs, several megabytes of JSON —
   and it is one scroll rather than 602 pages.
 - The appendix is fetched at build time and never committed, the same treatment the kremlin.ru pages
   get: only the dumps it produced are in the repository.
 - The English side of an entry is sometimes a primary source and sometimes written for the occasion, and
-  the document says so once, in its header's CC BY-SA note, rather than entry by entry.
+  the article says so once, in its header's CC BY-SA note, rather than entry by entry.
 - The authored entries moved out of the app's source into the pipeline's input, because nothing in the
   app imports them any more.
 

@@ -68,7 +68,7 @@ export type SentencePair = [ru: number, en: number[]];
 export interface Paragraph {
 	i: number;
 	/**
-	 * A stable ASCII id, unique within the document, that becomes the paragraph's
+	 * A stable ASCII id, unique within the article, that becomes the paragraph's
 	 * DOM id: `/read/<slug>#<anchor>` lands on the paragraph. Absent on articles,
 	 * whose paragraphs are not separately addressable.
 	 */
@@ -96,7 +96,7 @@ export interface Article {
 	slug: string;
 	title: ArticleTitle;
 	/**
-	 * The publication date, when the document has one. A document that was never
+	 * The publication date, when the article has one. An article that was never
 	 * published — the glossary — has none, and the reader renders no date rather
 	 * than inventing one.
 	 */
@@ -296,7 +296,7 @@ const RU_MONTHS = [
 ];
 
 /**
- * Deterministic (UTC, no ICU) Russian date: `12 июля 2021`. A document with no
+ * Deterministic (UTC, no ICU) Russian date: `12 июля 2021`. An article with no
  * date has nothing to render, so the answer is `null` and the header leaves the
  * element out instead of printing an empty one.
  */

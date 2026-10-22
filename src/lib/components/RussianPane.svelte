@@ -19,7 +19,7 @@
 
 	let text = $state<HTMLElement | null>(null);
 
-	// The date is rendered only when the document has one: a dateless document
+	// The date is rendered only when the article has one: a dateless article
 	// shows no `<time>` at all, rather than one whose text is empty.
 	const date = $derived(formatDate(article.date));
 
@@ -162,7 +162,7 @@
 		padding: 0 0.35rem;
 	}
 
-	/* the provenance line, when the document carries one: quieter than the links
+	/* the provenance line, when the article carries one: quieter than the links
 	   above it, which is the order the reader needs them in */
 	.note {
 		margin: 0 0 1rem;

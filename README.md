@@ -61,12 +61,12 @@ curl -H 'User-Agent: russian-reader/0.1' -o /tmp/appendix_glossary.wikitext \
 .venv/bin/python scripts/build_article.py glossary
 ```
 
-The first script writes `data/wiktionary-glossary-{ru,en}.txt` and refuses to write a wrong document: a
+The first script writes `data/wiktionary-glossary-{ru,en}.txt` and refuses to write a wrong dump: a
 label that matches no appendix term and writes no English of its own, an empty `enText`, a duplicate or
 non-ASCII `id`, and an empty definition each stop it with the entry named. It also lists the entries whose
 Russian definition names Russian and which add nothing, so a maintainer can re-read them when the Russian
 text changes. The appendix is fetched at build time and never committed — only the dumps it produced are.
-The second script is the ordinary pipeline, and leaves `articles.json` alone: a document with no date has
+The second script is the ordinary pipeline, and leaves `articles.json` alone: an article with no date has
 no place in a list ordered by date.
 
 ## Adding another article

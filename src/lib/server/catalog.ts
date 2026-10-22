@@ -25,7 +25,7 @@ export async function loadCatalog(): Promise<{ entries: CatalogEntry[]; generate
 	for (const loadArticle of Object.values(articles)) {
 		const article = (await loadArticle()).default;
 		if (!article || !Array.isArray(article.paragraphs)) continue;
-		// A dateless document — the glossary — has no place in a list ordered by
+		// A dateless article — the glossary — has no place in a list ordered by
 		// date, and is reached by its own door rather than from «Тексты».
 		if (article.date === undefined) continue;
 		listed.push({ slug: article.slug, title: article.title, date: article.date });

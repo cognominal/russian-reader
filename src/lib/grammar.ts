@@ -15,7 +15,7 @@ import entryIds from './grammeme-entries.json';
  * pymorphy3-dicts (MIT), so this table is the one thing in the repository the
  * MIT `LICENSE` does not cover — see that file for the credit.
  */
-const GLOSS: Record<string, string> = {
+const GLOSS_BY_CODE: Record<string, string> = {
 	// parts of speech
 	NOUN: 'имя существительное',
 	ADJF: 'имя прилагательное (полное)',
@@ -148,9 +148,10 @@ export type TagPart = {
  * file because `scripts/check_glossary.py` has to check it too: every id here must
  * exist as an anchor in the built glossary article, and a regenerated glossary can
  * drop one. A code the table above glosses but this map does not name keeps its
- * plain gloss — `NUMR` has no entry of its own, and neither does `Dmns`.
+ * plain gloss — `NUMR`, `Dmns` and `Prnt` have no entry of their own, and the
+ * glossary does not explain them.
  */
-const ENTRY: Record<string, string> = entryIds
+const ENTRY_BY_CODE: Record<string, string> = entryIds
 
 /**
  * One entry per component, in the tag's own order: the string is already
@@ -167,7 +168,7 @@ export function tagParts(tag: string): TagPart[] {
 	for (const group of tag.split(' ')) {
 		for (const part of group.split(',')) {
 			if (part === '') continue
-			parts.push({ tag: part, gloss: GLOSS[part] ?? null, entry: ENTRY[part] ?? null })
+			parts.push({ tag: part, gloss: GLOSS_BY_CODE[part] ?? null, entry: ENTRY_BY_CODE[part] ?? null })
 		}
 	}
 	return parts

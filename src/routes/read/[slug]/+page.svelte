@@ -506,18 +506,18 @@
 	 * comes back — which is what makes the anchor exist — and the browser's own
 	 * fragment scroll puts the entry where the reader can read it. The session's
 	 * panels and the article the reader was in are still there behind it. From an
-	 * article the link is another document, and the router's navigation is what every
+	 * article the link is another article, and the router's navigation is what every
 	 * other link in the app does.
 	 */
 	async function openEntry(entry: string) {
-		// The explanation belongs to the document the reader is leaving, and while it
+		// The explanation belongs to the article the reader is leaving, and while it
 		// is on screen the article pane does not exist: the entry the reader asked for
 		// would have nothing to land on. `forget` rather than `close`, because closing
 		// hands focus back to the word that was clicked and that scroll would fight the
 		// entry.
 		forget();
 		if (data.article.slug === GLOSSARY) {
-			// The entry is in this document: the browser's own fragment scroll puts it
+			// The entry is in this article: the browser's own fragment scroll puts it
 			// where the reader can read it, and nothing navigates.
 			await tick();
 			location.hash = entry;

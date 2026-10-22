@@ -114,7 +114,7 @@ def main() -> int:
     appendix = index(terms)
     entries: list[dict] = json.loads(args.entries.read_text(encoding="utf-8"))
 
-    # --- the guards: a wrong document is worse than no document --------------
+    # --- the guards: a wrong dump is worse than no dump -----------------------
     seen: set[str] = set()
     for entry in entries:
         where = entry.get("id", "<no id>")
