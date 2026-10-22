@@ -1,7 +1,7 @@
 # Foreign Language Reader
 
 This presentation is a bird view. For the details see the 
-files conformant to Matt's [skills](https://github.com/mattpocock/skills]
+files conformant to Matt's [skills](https://github.com/mattpocock/skills)
 conventions.
 
 ## Current state
