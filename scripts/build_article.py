@@ -7,6 +7,15 @@ lemmatize and rank rare words -> emit the JSON the SvelteKit app reads.
 Input (per article, `president-news-<id>-<lang>.txt` in data/): plain-text dumps
 of the presidential page, one paragraph per line, page chrome still attached.
 
+Two shapes are valid, and a dump's own header says which one it is. The kremlin.ru
+page: chrome above the body, a date line that locates it, markers that end it. A
+document with no date — the grammar glossary — declares `# date: none` in its
+header, and is then read as the title on the first line and the body from the
+second, every line prefixed with its anchor and a tab. A dump that declares nothing
+and has no date line still fails, so a kremlin.ru dump that lost its date line is
+an error rather than a dateless article. A document with no date is not merged into
+the catalog: that list is the kremlin.ru texts, ordered by date.
+
 Run:
   .venv/bin/python scripts/build_article.py 66181 --out scripts/out
 
@@ -46,6 +55,51 @@ RU_BODY_END = ("География", "Темы", "Статус материал�
 EN_BODY_END = ("Geography", "Topics", "Publication status")
 RU_SIGNATURE = re.compile(r"^[А-ЯЁ]\.\s?[А-ЯЁ][а-яё]+$")
 
+# --- the dateless declaration ------------------------------------------------
+# A document that was never published says so in its own header, and only then is
+# a dump with no date line valid. Inferring the shape from a missing date line
+# would read a broken kremlin.ru dump as a dateless article.
+DATE_DECLARATION = re.compile(r"^#\s*date:\s*(\S+)\s*$")
+DATELESS = "none"
+ANCHOR_LINE = re.compile(r"^(?P<anchor>\S+)\t(?P<text>.+)$")
+
+
+def header_lines(path: Path) -> list[str]:
+    """The dump's leading `# key: value` lines, up to the first line of text."""
+    found: list[str] = []
+    for line in path.read_text(encoding="utf-8").split("\n"):
+        if not line.startswith("#"):
+            break
+        found.append(line)
+    return found
+
+
+def text_lines(path: Path) -> list[str]:
+    """The dump's non-empty, non-header lines, stripped."""
+    lines = [l.strip() for l in path.read_text(encoding="utf-8").split("\n")]
+    return [l for l in lines if l and not l.startswith("#")]
+
+
+def declares_dateless(path: Path) -> bool:
+    """Whether the dump's header declares that the document has no date."""
+    for line in header_lines(path):
+        m = DATE_DECLARATION.match(line)
+        if m:
+            if m.group(1) != DATELESS:
+                raise SystemExit(f"{path}: unknown date declaration `{line.strip()}`")
+            return True
+    return False
+
+
+def note_for(path: Path) -> str | None:
+    """The provenance line the dump's header carries — the licence the English side
+    is adapted under, for the glossary — or `None` when it states none."""
+    for line in header_lines(path):
+        m = re.match(r"#\s*note:\s*(.+?)\s*$", line)
+        if m:
+            return m.group(1)
+    return None
+
 # --- sentences ---------------------------------------------------------------
 ABBREV = {
     "т", "д", "п", "е", "г", "гг", "в", "вв", "обл", "тыс", "млн", "млрд", "им",
@@ -82,10 +136,28 @@ PROPER = {"Name", "Surn", "Patr", "Geox", "Orgn", "Trad"}
 DIGITS = re.compile(r"\d+")
 
 
-def read_body(path: Path, lang: str) -> list[str]:
-    """Return the article's paragraph lines with the page chrome removed."""
-    lines = [l.strip() for l in path.read_text(encoding="utf-8").split("\n")]
-    lines = [l for l in lines if l and not l.startswith("#")]
+def read_body(path: Path, lang: str) -> list[tuple[str | None, str]]:
+    """The dump's paragraph lines with the page chrome removed, each paired with
+    the anchor its own line declared — `None` on the kremlin.ru dumps, whose
+    paragraphs are not separately addressable.
+
+    A dump that declares the dateless shape is read as the title on the first line
+    and the body from the second, with no chrome to strip and no date line to find;
+    every body line must carry `<anchor>\\t<paragraph>`. Everything else is the
+    kremlin.ru page, and a page with no date line is the error it has always been.
+    """
+    lines = text_lines(path)
+    if declares_dateless(path):
+        if not lines:
+            raise SystemExit(f"{path}: declared dateless, but the dump has no title line")
+        body: list[tuple[str | None, str]] = []
+        for n, line in enumerate(lines[1:], start=2):
+            m = ANCHOR_LINE.match(line)
+            if m is None:
+                raise SystemExit(f"{path}: line {n}: expected `<anchor>\\t<paragraph>`")
+            body.append((m.group("anchor"), m.group("text").strip()))
+        return body
+
     date_re, body_end = (RU_DATE, RU_BODY_END) if lang == "ru" else (EN_DATE, EN_BODY_END)
 
     start = next((i + 1 for i, l in enumerate(lines) if date_re.match(l)), None)
@@ -96,7 +168,7 @@ def read_body(path: Path, lang: str) -> list[str]:
     if lang == "ru":
         while body and RU_SIGNATURE.match(body[-1]):
             body.pop()
-    return body
+    return [(None, l) for l in body]
 
 
 def normalize(text: str) -> str:
@@ -224,8 +296,11 @@ RU_MONTHS = {
 }
 
 
-def date_for(path: Path, lang: str) -> str:
-    """ISO date of the RU date line, e.g. `12 июля 2021 года 17:00` (+03:00)."""
+def date_for(path: Path, lang: str) -> str | None:
+    """ISO date of the RU date line, e.g. `12 июля 2021 года 17:00` (+03:00), or
+    `None` for a dump that declares the dateless shape."""
+    if declares_dateless(path):
+        return None
     date_re = RU_DATE if lang == "ru" else EN_DATE
     lines = [l.strip() for l in path.read_text(encoding="utf-8").split("\n") if l.strip()]
     line = next((l for l in lines if date_re.match(l)), None)
@@ -240,6 +315,11 @@ def date_for(path: Path, lang: str) -> str:
 
 
 def title_for(path: Path, lang: str) -> str:
+    """The title: the line above the date line, or the first line of a dump that
+    declares the dateless shape, where nothing precedes the title."""
+    if declares_dateless(path):
+        lines = text_lines(path)
+        return lines[0] if lines else ""
     date_re = RU_DATE if lang == "ru" else EN_DATE
     lines = [l.strip() for l in path.read_text(encoding="utf-8").split("\n") if l.strip()]
     for i, l in enumerate(lines):
@@ -265,9 +345,7 @@ def dump_path(data: Path, slug: str, lang: str) -> Path:
 
 def source_for(path: Path, lang: str, slug: str) -> str:
     """The page URL recorded in the dump's `# source:` header, else the old guess."""
-    for line in path.read_text(encoding="utf-8").split("\n"):
-        if not line.startswith("#"):
-            break
+    for line in header_lines(path):
         m = re.match(r"#\s*source:\s*(\S+)\s*$", line)
         if m:
             return m.group(1)
@@ -290,10 +368,22 @@ def main() -> int:
     slug = args.article_id
     ru_path = dump_path(args.data, slug, "ru")
     en_path = dump_path(args.data, slug, "en")
-    ru_paras = [normalize(l) for l in read_body(ru_path, "ru")]
-    en_paras = [normalize(l) for l in read_body(en_path, "en")]
-    if len(ru_paras) != len(en_paras):
-        raise SystemExit(f"paragraph count mismatch: ru={len(ru_paras)} en={len(en_paras)}")
+    ru_lines = read_body(ru_path, "ru")
+    en_lines = read_body(en_path, "en")
+    if len(ru_lines) != len(en_lines):
+        raise SystemExit(f"paragraph count mismatch: ru={len(ru_lines)} en={len(en_lines)}")
+
+    # The two dumps are paired by position, so their anchors have to be the same
+    # anchors in the same order: a document whose halves drifted apart would pair
+    # every entry with the wrong side of the next one, and count alone would not
+    # notice.
+    for n, ((ru_anchor, _), (en_anchor, _)) in enumerate(zip(ru_lines, en_lines), start=1):
+        if ru_anchor != en_anchor:
+            raise SystemExit(f"anchor mismatch at paragraph {n}: ru={ru_anchor} en={en_anchor}")
+    anchors = [a for a, _ in ru_lines if a is not None]
+    duplicated = [a for a, n in Counter(anchors).items() if n > 1]
+    if duplicated:
+        raise SystemExit(f"duplicate anchor `{duplicated[0]}`")
 
     morph = pymorphy3.MorphAnalyzer()
 
@@ -306,7 +396,11 @@ def main() -> int:
     lemma_proper: set[str] = set()
     ru_chars = en_chars = 0
 
-    for i, (ru, en) in enumerate(zip(ru_paras, en_paras), start=1):
+    for i, (ru_line, en_line) in enumerate(zip(ru_lines, en_lines), start=1):
+        anchor, raw_ru = ru_line
+        _, raw_en = en_line
+        ru = normalize(raw_ru)
+        en = normalize(raw_en)
         ru_chars += len(ru)
         en_chars += len(en)
         spans = split_sentences(ru)
@@ -351,6 +445,7 @@ def main() -> int:
         skeleton.append(
             {
                 "i": i,
+                "anchor": anchor,
                 "ru": ru,
                 "en": en,
                 "ruSpans": spans,
@@ -372,9 +467,11 @@ def main() -> int:
         unmatched_total += unmatched
         unmatched_en_total += unmatched_en
         cost_sum += cost
-        paragraphs.append(
+        emitted: dict = {"i": para["i"]}
+        if para["anchor"] is not None:
+            emitted["anchor"] = para["anchor"]
+        emitted.update(
             {
-                "i": para["i"],
                 "aligned": len(rs) == len(es),
                 "alignCost": cost,
                 "ru": para["ru"],
@@ -385,6 +482,7 @@ def main() -> int:
                 "ruTokens": para["ruTokens"],
             }
         )
+        paragraphs.append(emitted)
 
     # --- pass 3: rarity ------------------------------------------------------
     wanted = {l.lower() for l in lemma_forms}
@@ -424,52 +522,71 @@ def main() -> int:
         for lemma in selected
     ]
 
-    article = {
+    date = date_for(ru_path, "ru")
+    source: dict[str, str] = {
+        "ru": source_for(ru_path, "ru", slug),
+        "en": source_for(en_path, "en", slug),
+    }
+    note = note_for(ru_path)
+    if note is not None:
+        source["note"] = note
+
+    article: dict = {
         "slug": slug,
         "title": {"ru": title_for(ru_path, "ru"), "en": title_for(en_path, "en")},
-        "date": date_for(ru_path, "ru"),
-        "source": {
-            "ru": source_for(ru_path, "ru", slug),
-            "en": source_for(en_path, "en", slug),
-        },
-        "stats": {
-            "paragraphs": len(paragraphs),
-            "unalignedParagraphs": unaligned,
-            "unmatchedSentences": unmatched_total,
-            "unmatchedEnSentences": unmatched_en_total,
-            "meanAlignCost": round(cost_sum / len(paragraphs), 3),
-            "ruSentences": sum(len(p["ruSentences"]) for p in paragraphs),
-            "enSentences": sum(len(p["enSentences"]) for p in paragraphs),
-            "ruTokens": sum(len(p["ruTokens"]) for p in paragraphs),
-            "ruLemmas": len(lemma_forms),
-            "rareLemmas": len(rare),
-            "rareTokens": rare_tokens,
-        },
-        "paragraphs": paragraphs,
-        "rare": rare,
     }
+    # A dateless document carries no date key at all: `null` would render as 1970.
+    if date is not None:
+        article["date"] = date
+    article["source"] = source
+    article["stats"] = {
+        "paragraphs": len(paragraphs),
+        "unalignedParagraphs": unaligned,
+        "unmatchedSentences": unmatched_total,
+        "unmatchedEnSentences": unmatched_en_total,
+        "meanAlignCost": round(cost_sum / len(paragraphs), 3),
+        "ruSentences": sum(len(p["ruSentences"]) for p in paragraphs),
+        "enSentences": sum(len(p["enSentences"]) for p in paragraphs),
+        "ruTokens": sum(len(p["ruTokens"]) for p in paragraphs),
+        "ruLemmas": len(lemma_forms),
+        "rareLemmas": len(rare),
+        "rareTokens": rare_tokens,
+    }
+    article["paragraphs"] = paragraphs
+    article["rare"] = rare
 
     args.out.mkdir(parents=True, exist_ok=True)
     out_path = args.out / f"{slug}.json"
     out_path.write_text(json.dumps(article, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     catalog = args.out / "articles.json"
-    entries = []
-    if catalog.exists():
-        entries = [e for e in json.loads(catalog.read_text(encoding="utf-8")) if e.get("slug") != slug]
-    entries.append(
-        {
-            "slug": slug,
-            "title": article["title"],
-            "date": article["date"],
-            "stats": article["stats"],
-        }
-    )
-    entries.sort(key=lambda e: e["date"], reverse=True)
-    catalog.write_text(json.dumps(entries, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    # The catalog is the kremlin.ru texts, ordered by date. A document with no date
+    # has no place in that order, and the reader skips it for the same reason —
+    # one rule in both places rather than a flag that could disagree with it.
+    if date is None:
+        print(f"catalog               {catalog} left alone ({slug} has no date)")
+    else:
+        entries = []
+        if catalog.exists():
+            entries = [
+                e for e in json.loads(catalog.read_text(encoding="utf-8")) if e.get("slug") != slug
+            ]
+        entries.append(
+            {
+                "slug": slug,
+                "title": article["title"],
+                "date": article["date"],
+                "stats": article["stats"],
+            }
+        )
+        entries.sort(key=lambda e: e["date"], reverse=True)
+        catalog.write_text(json.dumps(entries, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
     # --- report --------------------------------------------------------------
     s = article["stats"]
-    print(f"wrote {out_path} ({out_path.stat().st_size / 1024:.0f} KiB) and {catalog}")
+    print(f"wrote {out_path} ({out_path.stat().st_size / 1024:.0f} KiB)")
+    print(f"title                 {article['title']['ru']}  /  {article['title']['en']}")
+    print(f"date                  {article.get('date', 'none')}")
+    print(f"anchors               {len(anchors) if anchors else 'none'}")
     print(f"paragraphs            {s['paragraphs']}  (unequal sentence counts: {s['unalignedParagraphs']})")
     print(f"sentences ru/en       {s['ruSentences']}/{s['enSentences']}")
     print(f"unmatched ru/en sent  {s['unmatchedSentences']}/{s['unmatchedEnSentences']}  mean cost {s['meanAlignCost']}")

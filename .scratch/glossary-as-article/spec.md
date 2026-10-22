@@ -194,15 +194,19 @@ which has promised a link into the glossary since Q27 and never had one, gets it
   line, body from the second, no `date` in the article — while a dump that declares nothing and has no
   date line still fails with today's message. The declaration is what keeps the guard that catches a
   broken kremlin.ru dump intact: inferring the shape from the absence of a date line would turn a bad dump
-  into a dateless article instead of an error. The kremlin path is otherwise unchanged.
+  into a dateless article instead of an error. It is `# date: none` in the dump's header, and any other
+  value there is an error rather than a silent fall back to the kremlin path. The kremlin path is otherwise
+  unchanged.
 - **The pipeline emits the paragraph anchor** from the dump (each Russian paragraph line carries the entry
   id the entry came from) and emits the source note from a header line, so the dump remains the whole
   input of the JSON.
-- **The glossary run does not touch the catalog.** The pipeline's catalog merge is skipped for this
-  document (a flag), because the glossary is not a text in «Тексты». Everything else about the run is the
-  ordinary one: positional paragraph pairing (the two dumps have one paragraph per entry, so the counts
-  match by construction), sentence splitting, the alignment DP, pymorphy3 tokens, rarity ranking, and the
-  same emitted shape.
+- **The glossary run does not touch the catalog.** The pipeline skips the catalog merge for a document with
+  no date, and the reader's fallback skips those documents for the same reason: the catalog is the
+  kremlin.ru texts ordered by date, and a dateless document has no place in that order. One rule in both
+  places rather than a flag that could disagree with it. Everything else about the run is the ordinary one:
+  positional paragraph pairing (the two dumps have one paragraph per entry, so the counts match by
+  construction), sentence splitting, the alignment DP, pymorphy3 tokens, rarity ranking, and the same
+  emitted shape.
 - **The explanation endpoint is unchanged.** It re-derives the sentence from `ruSentences` and the
   translation from `pairs`, both of which the glossary article has, so a word clicked in a glossary entry
   is explained exactly as a word clicked in an article. Rarity and the grammar tag come from the same
