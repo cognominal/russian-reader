@@ -27,7 +27,13 @@ non-ASCII anchor each stop it with a message naming the entry.
       and panel behaviour the word-explanation spec measured for articles.
 - [x] Tab and Shift+Tab walk the document's sentence pairs across paragraph boundaries exactly as they do
       in an article.
-- [x] The producer stops with a message naming the entry on each of the four broken inputs above.
+- [x] The producer stops with a message naming the entry on each broken input it can see: an English label
+      that matches no appendix term and an entry that writes no English of its own, an entry with no `def`
+      or no `id`, two entries sharing an `id`, an `id` that is not ASCII, and an `enText` that is empty.
+      The paragraph-count difference between the two dumps is the pipeline's guard rather than the
+      producer's — the producer writes both sides in one pass over the same entries, so the counts cannot
+      differ there, and a pair that differs by hand is caught where it is read
+      (`paragraph count mismatch: ru=2 en=1`).
 - [x] The document is not offered in «Тексты», and the catalog still lists only the kremlin.ru articles.
 - [x] `bun run check` reports 0 errors and 0 warnings, `bun run build` is clean, and a production build
       shows no console errors.

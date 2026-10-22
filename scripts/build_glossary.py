@@ -56,6 +56,26 @@ def one_line(text: str) -> str:
     return SPACES.sub(" ", text).strip()
 
 
+# The appendix does not write every definition as a sentence: `English catenative
+# verbs` is a noun phrase and `(See also voice)` is a parenthesis with no sentence
+# inside. Where such a definition is followed by an entry's own English, the join
+# has to supply the stop, or the two read as one sentence — `direct-object` came out
+# as `transitive verb, indirect object In Russian the indirect object…`.
+SENTENCE_END = ".!?…"
+CLOSERS = ")]}\"'”»"
+
+
+def stopped(text: str, following: bool) -> str:
+    """`text` with the stop the composed paragraph needs after it, when something
+    follows it and it does not already end a sentence. The text itself is otherwise
+    left alone: it is a primary source, and only the stop at the join is added."""
+    if not following or not text:
+        return text
+    if text.rstrip(CLOSERS)[-1] in SENTENCE_END:
+        return text
+    return f"{text}."
+
+
 def russian_side(entry: dict) -> str:
     """The entry as Russian prose: headword, aliases, definition, and the entries
     it points at. The references are text, not links: an article has one rendering
@@ -74,7 +94,7 @@ def english_side(entry: dict, term: Term | None) -> str:
     text for the term it came from, then whatever this entry adds to it."""
     parts = [entry["en"].strip()]
     if term is not None:
-        parts.append(term.text.strip())
+        parts.append(stopped(term.text.strip(), following=bool(entry.get("enText", "").strip())))
     parts.append(entry.get("enText", "").strip())
     return one_line(f"{parts[0]}{SEPARATOR}{' '.join(p for p in parts[1:] if p)}")
 
@@ -149,9 +169,6 @@ def main() -> int:
             additions += 1
         ru.append(f"{entry['id']}\t{russian_side(entry)}")
         en.append(f"{entry['id']}\t{english_side(entry, term)}")
-
-    if len(ru) != len(en):
-        raise SystemExit(f"the two sides differ: ru={len(ru)} en={len(en)}")
 
     args.out.mkdir(parents=True, exist_ok=True)
     for lang, title, lines in (("ru", RU_TITLE, ru), ("en", EN_TITLE, en)):

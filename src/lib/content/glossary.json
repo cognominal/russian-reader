@@ -11,12 +11,12 @@
  },
  "stats": {
   "paragraphs": 602,
-  "unalignedParagraphs": 430,
-  "unmatchedSentences": 191,
+  "unalignedParagraphs": 428,
+  "unmatchedSentences": 190,
   "unmatchedEnSentences": 12,
-  "meanAlignCost": 0.402,
+  "meanAlignCost": 0.401,
   "ruSentences": 1701,
-  "enSentences": 1537,
+  "enSentences": 1542,
   "ruTokens": 17960,
   "ruLemmas": 2901,
   "rareLemmas": 200,
@@ -21604,7 +21604,7 @@
    "i": 76,
    "anchor": "category",
    "aligned": false,
-   "alignCost": 0.426,
+   "alignCost": 0.427,
    "ru": "категория — Совокупность словарных статей, объединённых по сходству синтаксиса или значения: например, русские существительные множественного числа или слова, относящиеся к спорту. См. также: кат..",
    "en": "category — A collection of entries, used to categorize or group entries of words that are similar in syntax (for example, English plural nouns) or in sense (for example, English words pertaining to sports); see Wiktionary:Categorization.",
    "ruSentences": [
@@ -21854,9 +21854,9 @@
    "i": 77,
    "anchor": "catenative-verb",
    "aligned": false,
-   "alignCost": 0.502,
+   "alignCost": 0.355,
    "ru": "катенативный глагол — Глагол, присоединяющий к себе инфинитив (в английском — с частицей или без неё, а также герундий) и образующий цепочку сказуемых. В русском ему соответствуют модальные и фазовые глаголы с инфинитивом: «хочу спать», «начал читать». Герундия в русском нет. См. также: глагол, инфинитив, герундий.",
-   "en": "catenative verb — A verb able to be immediately followed by the full or bare infinitive, or gerund (i.e. non-finite verbs). → Appendix:English catenative verbs In Russian modal and phasal verbs with an infinitive play a similar role: «хочу спать», «начал читать»; Russian has no gerund.",
+   "en": "catenative verb — A verb able to be immediately followed by the full or bare infinitive, or gerund (i.e. non-finite verbs). → Appendix:English catenative verbs. In Russian modal and phasal verbs with an infinitive play a similar role: «хочу спать», «начал читать»; Russian has no gerund.",
    "ruSentences": [
     {
      "i": 0,
@@ -21883,7 +21883,12 @@
     {
      "i": 0,
      "start": 0,
-     "end": 286
+     "end": 160
+    },
+    {
+     "i": 1,
+     "start": 160,
+     "end": 287
     }
    ],
    "pairs": [
@@ -21896,18 +21901,20 @@
     [
      1,
      [
-      0
+      1
      ]
     ],
     [
      2,
      [
-      0
+      1
      ]
     ],
     [
      3,
-     []
+     [
+      1
+     ]
     ]
    ],
    "ruTokens": [
@@ -48721,10 +48728,10 @@
   {
    "i": 153,
    "anchor": "direct-object",
-   "aligned": false,
-   "alignCost": 0.423,
+   "aligned": true,
+   "alignCost": 0.26,
    "ru": "прямое дополнение — Дополнение, на которое прямо направлено действие глагола: «читать книгу», «видеть дом». В русском выражается винительным падежом без предлога, реже родительным; противопоставлено косвенному дополнению. См. также: винительный падеж, дополнение, переходный глагол.",
-   "en": "direct object — The noun or noun phrase that a verb is directly acting upon. In some languages direct objects are marked with the accusative case. → transitive verb, indirect object In Russian it is expressed by the accusative without a preposition, more rarely by the genitive.",
+   "en": "direct object — The noun or noun phrase that a verb is directly acting upon. In some languages direct objects are marked with the accusative case. → transitive verb, indirect object. In Russian it is expressed by the accusative without a preposition, more rarely by the genitive.",
    "ruSentences": [
     {
      "i": 0,
@@ -48751,7 +48758,12 @@
     {
      "i": 1,
      "start": 76,
-     "end": 278
+     "end": 182
+    },
+    {
+     "i": 2,
+     "start": 182,
+     "end": 279
     }
    ],
    "pairs": [
@@ -48770,7 +48782,7 @@
     [
      2,
      [
-      1
+      2
      ]
     ]
    ],
@@ -77386,7 +77398,7 @@
    "i": 243,
    "anchor": "humorous",
    "aligned": false,
-   "alignCost": 0.375,
+   "alignCost": 0.376,
    "ru": "шутливое (шутливо, ироническое) — Помета словаря: слово или выражение, сказанное в шутку либо возникшее как шутка. Русские пометы этого рода — «шутливое», «ироническое». См. также: разговорное.",
    "en": "humorous — A word, term, or phrase that is uttered in jest (jocularly) or that originated in that way. The Russian labels of this kind are «шутливое» and «ироническое».",
    "ruSentences": [
@@ -83458,7 +83470,7 @@
    "i": 262,
    "anchor": "imperfective-past",
    "aligned": false,
-   "alignCost": 0.484,
+   "alignCost": 0.485,
    "ru": "прошедшее время несовершенного вида — Форма глагола несовершенного вида в прошедшем времени; обозначает действие, которое происходило обычно, длилось или повторялось в прошлом: «он красил забор весь день», «раньше он красил заборы». См. также: несовершенный вид, прошедшее время.",
    "en": "imperfective past — A verb form of imperfective aspect and past tense, which is used to describe an action or event which was happening habitually, continuously or repeatedly in the past, as in “Tom was painting the fence” or “Tom used to paint the fence.”",
    "ruSentences": [
@@ -87641,9 +87653,9 @@
    "i": 274,
    "anchor": "indirect-object",
    "aligned": false,
-   "alignCost": 0.363,
+   "alignCost": 0.353,
    "ru": "косвенное дополнение — Второй объект при глаголе передачи или сообщения, обозначающий получателя или цель: «дать книгу брату», «сказать другу». В русском выражается дательным падежом. Противопоставлено прямому дополнению. См. также: прямое дополнение, дательный падеж.",
-   "en": "indirect object — A grammatical role of a ditransitive verb that usually manifests as a recipient or goal. In some languages indirect objects are marked with the dative case. → direct object In Russian it is expressed by the dative case.",
+   "en": "indirect object — A grammatical role of a ditransitive verb that usually manifests as a recipient or goal. In some languages indirect objects are marked with the dative case. → direct object. In Russian it is expressed by the dative case.",
    "ruSentences": [
     {
      "i": 0,
@@ -87675,7 +87687,12 @@
     {
      "i": 1,
      "start": 106,
-     "end": 237
+     "end": 191
+    },
+    {
+     "i": 2,
+     "start": 191,
+     "end": 238
     }
    ],
    "pairs": [
@@ -87700,7 +87717,7 @@
     [
      3,
      [
-      1
+      2
      ]
     ]
    ],
@@ -117339,7 +117356,7 @@
    "i": 366,
    "anchor": "number",
    "aligned": true,
-   "alignCost": 0.548,
+   "alignCost": 0.549,
    "ru": "число (грамматическое число) — Грамматическая категория, указывающая на количество предметов: единственное, множественное и двойственное число. В русском различаются единственное и множественное число, след двойственного сохранился в сочетаниях вроде «два стола». См. также: единственное число, множественное число.",
    "en": "number — A grammatical category that indicates how many items or individuals. Examples are singular, plural and dual. In Russian only the singular and the plural are distinguished; a trace of the dual survives in combinations like «два стола».",
    "ruSentences": [
@@ -126394,9 +126411,9 @@
    "i": 393,
    "anchor": "passive-voice",
    "aligned": false,
-   "alignCost": 0.363,
+   "alignCost": 0.36,
    "ru": "страдательный залог (пассив) — Залог, при котором подлежащее не производит действие, а испытывает его: «Мяч был брошен мальчиком» вместо «Мальчик бросил мяч». В русском образуется глаголами на «-ся» и страдательными причастиями. См. также: действительный залог, залог, причастие.",
-   "en": "passive voice — the voice verb form in which the subject is not the person or thing doing the action, and is usually having the action done on them (compare active voice), e.g. the ball was kicked (by the boy). (See also voice) In Russian it is formed by verbs in «-ся» and by passive participles.",
+   "en": "passive voice — the voice verb form in which the subject is not the person or thing doing the action, and is usually having the action done on them (compare active voice), e.g. the ball was kicked (by the boy). (See also voice). In Russian it is formed by verbs in «-ся» and by passive participles.",
    "ruSentences": [
     {
      "i": 0,
@@ -126418,7 +126435,12 @@
     {
      "i": 0,
      "start": 0,
-     "end": 297
+     "end": 228
+    },
+    {
+     "i": 1,
+     "start": 228,
+     "end": 298
     }
    ],
    "pairs": [
@@ -126437,7 +126459,7 @@
     [
      2,
      [
-      0
+      1
      ]
     ]
    ],
@@ -148537,7 +148559,7 @@
    "i": 458,
    "anchor": "quantifier",
    "aligned": false,
-   "alignCost": 0.47,
+   "alignCost": 0.471,
    "ru": "квантор (количественное слово) — Слово, указывающее на количество предметов, названных существительным: «все», «ни один», «много», «несколько», «восемь», «половина». В русской традиции это количественные местоимения и числительные. См. также: местоимение, имя числительное.",
    "en": "quantifier — A word that specifies the amount of its related noun, such as all, no, many, several, eight, half, etc. In the Russian tradition they are quantitative pronouns and numerals.",
    "ruSentences": [
@@ -168136,10 +168158,10 @@
   {
    "i": 519,
    "anchor": "sound-symbolism",
-   "aligned": false,
-   "alignCost": 0.497,
+   "aligned": true,
+   "alignCost": 0.35,
    "ru": "звукосимволизм (звуковой символизм) — Идея, что звуки или их сочетания несут в языке собственное значение, помимо словарного. Например, в русском начальное «ш» часто связывают с шумом и шелестом: «шуршать», «шелест», «шёпот». См. также: звукоподражание.",
-   "en": "sound symbolism — The idea that phonemes or clusters of phonemes carry intrinsic meaning in a language. For example, the phoneme cluster gl- appears to mean \"light\" in English in words such as gleam, glisten, glare, glossy and glow. (See also phonestheme) In Russian the initial «ш» is often associated with noise and rustling: «шуршать», «шелест», «шёпот».",
+   "en": "sound symbolism — The idea that phonemes or clusters of phonemes carry intrinsic meaning in a language. For example, the phoneme cluster gl- appears to mean \"light\" in English in words such as gleam, glisten, glare, glossy and glow. (See also phonestheme). In Russian the initial «ш» is often associated with noise and rustling: «шуршать», «шелест», «шёпот».",
    "ruSentences": [
     {
      "i": 0,
@@ -168166,7 +168188,12 @@
     {
      "i": 1,
      "start": 103,
-     "end": 357
+     "end": 256
+    },
+    {
+     "i": 2,
+     "start": 256,
+     "end": 358
     }
    ],
    "pairs": [
@@ -168185,7 +168212,7 @@
     [
      2,
      [
-      1
+      2
      ]
     ]
    ],
