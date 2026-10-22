@@ -187,11 +187,14 @@ which has promised a link into the glossary since Q27 and never had one, gets it
   the pipeline is guarded — a missing `en` label match, a case-2 entry with no authored English, a
   paragraph-count difference between the two dumps and an empty definition each stop it with a message
   naming the entry.
-- **The pipeline learns that a document may have no date line.** Three functions assume one today: the
-  body reader raises «no date line found, cannot locate the body», the date reader raises «no date line
-  found», and the title reader takes the line *before* the date. The new rule: a document with no date line
-  has its title on the first line and its body from the second, and its article carries no `date`. The
-  kremlin path is unchanged.
+- **The pipeline learns that a document may have no date line, and only when the dump says so.** Three
+  functions assume one today: the body reader raises «no date line found, cannot locate the body», the date
+  reader raises «no date line found», and the title reader takes the line *before* the date. The new rule:
+  a dump whose own header declares the dateless shape is valid with no date line — title on the first
+  line, body from the second, no `date` in the article — while a dump that declares nothing and has no
+  date line still fails with today's message. The declaration is what keeps the guard that catches a
+  broken kremlin.ru dump intact: inferring the shape from the absence of a date line would turn a bad dump
+  into a dateless article instead of an error. The kremlin path is otherwise unchanged.
 - **The pipeline emits the paragraph anchor** from the dump (each Russian paragraph line carries the entry
   id the entry came from) and emits the source note from a header line, so the dump remains the whole
   input of the JSON.
