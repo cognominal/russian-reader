@@ -266,8 +266,11 @@ def parse(path: Path) -> list[Term]:
             close()
             line = COMMENT.sub("", line)
             head_line, inline = _inline(line[1:])
-            head = _headword(head_line)
             names = _names(head_line)
+            # A term the appendix heads with a Wikipedia link alone renders to
+            # nothing once the hints are gone: its own declared name is the
+            # headword then.
+            head = _headword(head_line) or (names[-1] if names else "")
             body = [render(inline).strip()] if inline.strip() else []
         elif line.startswith(":") and head is not None:
             rendered = render(line[1:]).strip()

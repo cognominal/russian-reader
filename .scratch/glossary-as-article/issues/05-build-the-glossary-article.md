@@ -17,17 +17,17 @@ non-ASCII anchor each stop it with a message naming the entry.
 
 **Status:** ready-for-agent
 
-- [ ] The two dumps exist and are committed, one paragraph per entry on each side, each header naming the
+- [x] The two dumps exist and are committed, one paragraph per entry on each side, each header naming the
       appendix as its source.
-- [ ] `/read/glossary` shows 602 paragraphs in Russian alphabetical order, each with its English side in
+- [x] `/read/glossary` shows 602 paragraphs in Russian alphabetical order, each with its English side in
       the paragraph pane.
-- [ ] Every paragraph carries its entry's anchor; the anchors are unique and ASCII; `/read/glossary#<id>`
+- [x] Every paragraph carries its entry's anchor; the anchors are unique and ASCII; `/read/glossary#<id>`
       lands on that entry.
-- [ ] Clicking a word of an entry in the sentence pane explains it, with the same loading, failure, close
+- [x] Clicking a word of an entry in the sentence pane explains it, with the same loading, failure, close
       and panel behaviour the word-explanation spec measured for articles.
-- [ ] Tab and Shift+Tab walk the document's sentence pairs across paragraph boundaries exactly as they do
+- [x] Tab and Shift+Tab walk the document's sentence pairs across paragraph boundaries exactly as they do
       in an article.
-- [ ] The producer stops with a message naming the entry on each of the four broken inputs above.
-- [ ] The document is not offered in «Тексты», and the catalog still lists only the kremlin.ru articles.
-- [ ] `bun run check` reports 0 errors and 0 warnings, `bun run build` is clean, and a production build
+- [x] The producer stops with a message naming the entry on each of the four broken inputs above.
+- [x] The document is not offered in «Тексты», and the catalog still lists only the kremlin.ru articles.
+- [x] `bun run check` reports 0 errors and 0 warnings, `bun run build` is clean, and a production build
       shows no console errors.

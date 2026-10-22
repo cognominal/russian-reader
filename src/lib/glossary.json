@@ -2,7 +2,7 @@
 	{
 		"id": "symbol-asterisk",
 		"ru": "звёздочка",
-		"en": "*",
+		"en": "asterisk",
 		"def": "Знак перед словом или морфемой, показывающий, что форма не засвидетельствована, а восстановлена учёными: *werdʰom — восстановленное праиндоевропейское слово.",
 		"aliases": [
 			"астериск"
@@ -12,7 +12,7 @@
 	{
 		"id": "symbol-double-asterisk",
 		"ru": "двойная звёздочка",
-		"en": "**",
+		"en": "double asterisk",
 		"def": "Знак перед формой, которая должна была бы существовать по правилу, но ошибочна: в действительном употреблении на её месте стоит другая форма.",
 		"aliases": [],
 		"see": []
@@ -20,7 +20,7 @@
 	{
 		"id": "symbol-brackets",
 		"ru": "квадратные скобки",
-		"en": "[ ]",
+		"en": "square brackets",
 		"def": "Словарный знак: в квадратные скобки заключают цитату, где слово лишь упоминается, а не употребляется по-настоящему, либо сведения о родственном слове, а не пример его употребления.",
 		"aliases": [
 			"скобки"
@@ -30,7 +30,7 @@
 	{
 		"id": "symbol-dagger",
 		"ru": "крестик",
-		"en": "†",
+		"en": "dagger",
 		"def": "Знак перед названием вымершего таксона; например, так помечают анаптоморфина.",
 		"aliases": [
 			"кинжал"
@@ -56,7 +56,8 @@
 		"see": [
 			"падеж",
 			"родительный падеж"
-		]
+		],
+		"enText": "In modern Russian the genitive with the prepositions «от», «из» and «с» carries those meanings: «пришёл из города»."
 	},
 	{
 		"id": "ablaut",
@@ -80,7 +81,8 @@
 		],
 		"see": [
 			"падеж"
-		]
+		],
+		"enText": "Russian has no such case."
 	},
 	{
 		"id": "abstract-noun",
@@ -153,7 +155,8 @@
 		],
 		"see": [
 			"ударение"
-		]
+		],
+		"enText": "In Russian teaching texts it is sometimes used to mark stress."
 	},
 	{
 		"id": "ad",
@@ -210,7 +213,8 @@
 		"aliases": [],
 		"see": [
 			"наклонение"
-		]
+		],
+		"enText": "Russian does not express it grammatically."
 	},
 	{
 		"id": "adverb",
@@ -269,7 +273,8 @@
 		"aliases": [],
 		"see": [
 			"согласный"
-		]
+		],
+		"enText": "In Russian they are «ц» and «ч»."
 	},
 	{
 		"id": "agent-noun",
@@ -371,7 +376,8 @@
 		],
 		"see": [
 			"заимствование"
-		]
+		],
+		"enText": "In Russian the analogous process is the russification of borrowings."
 	},
 	{
 		"id": "annexed-state",
@@ -383,7 +389,8 @@
 		],
 		"see": [
 			"падеж"
-		]
+		],
+		"enText": "Russian has no such category."
 	},
 	{
 		"id": "angry-register",
@@ -393,7 +400,8 @@
 		"aliases": [],
 		"see": [
 			"регистр"
-		]
+		],
+		"enText": "Russian has no separate grammatical register."
 	},
 	{
 		"id": "animacy",
@@ -406,7 +414,8 @@
 		"see": [
 			"имя существительное",
 			"винительный падеж"
-		]
+		],
+		"enText": "In Russian animate nouns share the accusative and genitive forms: «вижу студента», but «вижу дом»."
 	},
 	{
 		"id": "antepenultima",
@@ -418,7 +427,8 @@
 		],
 		"see": [
 			"ударение"
-		]
+		],
+		"enText": "In Russian the stress falls on it, for example in «ба́бушка»."
 	},
 	{
 		"id": "antonym",
@@ -442,7 +452,8 @@
 		"see": [
 			"прошедшее время",
 			"вид"
-		]
+		],
+		"enText": "Old Russian and Church Slavonic had one; modern Russian does not use it."
 	},
 	{
 		"id": "apheresis",
@@ -452,7 +463,8 @@
 		"aliases": [
 			"афереза"
 		],
-		"see": []
+		"see": [],
+		"enText": "In Russian a colloquial example is «Мерика» for «Америка»."
 	},
 	{
 		"id": "aphesis",
@@ -472,7 +484,8 @@
 		"aliases": [
 			"усечение конца"
 		],
-		"see": []
+		"see": [],
+		"enText": "In Russian it occurs in colloquial speech and poetry: «чтоб» for «чтобы»."
 	},
 	{
 		"id": "applicative",
@@ -482,7 +495,8 @@
 		"aliases": [],
 		"see": [
 			"залог"
-		]
+		],
+		"enText": "Russian has no such category; similar meanings are conveyed with prepositions."
 	},
 	{
 		"id": "approximant",
@@ -494,7 +508,8 @@
 		],
 		"see": [
 			"согласный"
-		]
+		],
+		"enText": "In Russian they are «й», «л» and «р», as opposed to fricatives and plosives."
 	},
 	{
 		"id": "archaic",
@@ -530,7 +545,8 @@
 		],
 		"see": [
 			"местоимение"
-		]
+		],
+		"enText": "Russian has no articles; the demonstrative «этот» and word order convey similar meanings."
 	},
 	{
 		"id": "aspect",
@@ -554,7 +570,8 @@
 		"aliases": [
 			"придыхательная h"
 		],
-		"see": []
+		"see": [],
+		"enText": "Russian has no such phenomenon."
 	},
 	{
 		"id": "assimilation",
@@ -567,7 +584,8 @@
 		"see": [
 			"диссимиляция",
 			"фонетика"
-		]
+		],
+		"enText": "In Russian «сшить» is pronounced with «ш» and «отдать» with «д»."
 	},
 	{
 		"id": "atelic",
@@ -638,12 +656,13 @@
 		"see": [
 			"глагол",
 			"составное сказуемое"
-		]
+		],
+		"enText": "In Russian auxiliary verbs form a compound predicate: «буду читать»."
 	},
 	{
 		"id": "avoidance-term",
 		"ru": "заместительное слово",
-		"en": "Naming taboo avoidance term",
+		"en": "avoidance term",
 		"def": "Слово, которым стандартно заменяют табуированное, чтобы не называть его прямо: «медведь» вместо древнего имени зверя. Такие замены типичны для обрядовой и бытовой речи.",
 		"aliases": [],
 		"see": [
@@ -707,7 +726,8 @@
 		],
 		"see": [
 			"жаргон"
-		]
+		],
+		"enText": "In Russian it is close to the school «язык наоборот»."
 	},
 	{
 		"id": "bahuvrihi",
@@ -739,7 +759,8 @@
 		"en": "base state",
 		"def": "В языке луганда — форма имени без начального гласного, противопоставленная тематическому состоянию. В русском такой категории нет.",
 		"aliases": [],
-		"see": []
+		"see": [],
+		"enText": "Russian has no such category."
 	},
 	{
 		"id": "bc",
@@ -811,7 +832,8 @@
 		"see": [
 			"множественное число",
 			"чередование"
-		]
+		],
+		"enText": "In Russian the closest analogue is alternation in the plural: «друг» — «друзья»."
 	},
 	{
 		"id": "c",
@@ -834,7 +856,8 @@
 		"see": [
 			"заимствование",
 			"словообразование"
-		]
+		],
+		"enText": "Russian «небоскрёб» is a morpheme-for-morpheme calque of the English word."
 	},
 	{
 		"id": "case",
@@ -846,7 +869,8 @@
 			"именительный падеж",
 			"родительный падеж",
 			"дательный падеж"
-		]
+		],
+		"enText": "Russian has six cases: именительный, родительный, дательный, винительный, творительный and предложный."
 	},
 	{
 		"id": "cat",
@@ -878,7 +902,8 @@
 			"глагол",
 			"инфинитив",
 			"герундий"
-		]
+		],
+		"enText": "In Russian modal and phasal verbs with an infinitive play a similar role: «хочу спать», «начал читать»; Russian has no gerund."
 	},
 	{
 		"id": "causative-verb",
@@ -962,7 +987,7 @@
 	{
 		"id": "cjk",
 		"ru": "китайский, японский, корейский",
-		"en": "CJK",
+		"en": "CJKV",
 		"def": "Сокращение, обозначающее китайский, японский и корейский языки и их иероглифическую письменность; иногда к ним добавляют вьетнамский.",
 		"aliases": [],
 		"see": []
@@ -1100,7 +1125,8 @@
 		"see": [
 			"творительный падеж",
 			"падеж"
-		]
+		],
+		"enText": "Russian has no such case; the instrumental with the preposition «с» carries its meaning: «пришёл с другом»."
 	},
 	{
 		"id": "common",
@@ -1123,7 +1149,8 @@
 		"see": [
 			"род",
 			"эпицен"
-		]
+		],
+		"enText": "In Russian a «существительное общего рода» agrees as masculine or feminine depending on the sex of the referent: «умный плакса» — «умная плакса»."
 	},
 	{
 		"id": "comparable",
@@ -1150,7 +1177,8 @@
 		"see": [
 			"превосходная степень",
 			"степени сравнения"
-		]
+		],
+		"enText": "In Russian it is formed with the suffixes «-ее/-ей» or the word «более»."
 	},
 	{
 		"id": "compound",
@@ -1198,7 +1226,8 @@
 			"наклонение",
 			"сослагательное наклонение",
 			"изъявительное наклонение"
-		]
+		],
+		"enText": "In Russian it is expressed by a form with the particle «бы»: «если бы я был богат, я был бы счастлив»."
 	},
 	{
 		"id": "conflation",
@@ -1219,7 +1248,8 @@
 		"see": [
 			"склонение",
 			"глагол"
-		]
+		],
+		"enText": "Russian verbs fall into a first and a second conjugation."
 	},
 	{
 		"id": "conjunction",
@@ -1240,7 +1270,8 @@
 		"aliases": [],
 		"see": [
 			"глагол"
-		]
+		],
+		"enText": "Russian has no such form: negation is expressed with the particle «не» and an ordinary verb form."
 	},
 	{
 		"id": "connotation",
@@ -1275,7 +1306,8 @@
 		"see": [
 			"согласный",
 			"вокализм"
-		]
+		],
+		"enText": "The consonantism of Russian includes hard and soft, voiced and voiceless consonants."
 	},
 	{
 		"id": "consonant-gradation",
@@ -1288,7 +1320,8 @@
 		"see": [
 			"согласный",
 			"чередование"
-		]
+		],
+		"enText": "Russian has no alternations of this type, though it has historical consonant alternations: «друг — друзья — дружба»."
 	},
 	{
 		"id": "construct-state",
@@ -1301,7 +1334,8 @@
 		"see": [
 			"родительный падеж",
 			"падеж"
-		]
+		],
+		"enText": "Russian has no such form; the genitive conveys the same meaning."
 	},
 	{
 		"id": "contamination",
@@ -1329,7 +1363,8 @@
 		"see": [
 			"усечение",
 			"эллипсис"
-		]
+		],
+		"enText": "In standard Russian writing it is hardly used, but colloquial speech contracts forms: «тыща» for «тысяча»."
 	},
 	{
 		"id": "contronym",
@@ -1432,7 +1467,8 @@
 			"родительный падеж",
 			"числительное",
 			"множественное число"
-		]
+		],
+		"enText": "In Russian the genitive singular is used with the numerals «два», «три» and «четыре»: «два шага», «три дома», but «пять шагов»."
 	},
 	{
 		"id": "countable",
@@ -1445,7 +1481,8 @@
 		"see": [
 			"неисчисляемое",
 			"имя существительное"
-		]
+		],
+		"enText": "Russian has no articles, and countability shows in combination with numerals."
 	},
 	{
 		"id": "counter",
@@ -1459,7 +1496,8 @@
 		"see": [
 			"числительное",
 			"классификатор"
-		]
+		],
+		"enText": "Russian has no such obligatory words; words like «штука» partly fill their role: «пять голов скота»."
 	},
 	{
 		"id": "dated",
@@ -1487,7 +1525,8 @@
 			"падеж",
 			"винительный падеж",
 			"именительный падеж"
-		]
+		],
+		"enText": "In Russian it answers the questions «кому?» and «чему?»."
 	},
 	{
 		"id": "declension",
@@ -1499,7 +1538,8 @@
 			"спряжение",
 			"падеж",
 			"имя существительное"
-		]
+		],
+		"enText": "Russian nouns fall into three declensions."
 	},
 	{
 		"id": "defective",
@@ -1510,7 +1550,8 @@
 		"see": [
 			"глагол",
 			"спряжение"
-		]
+		],
+		"enText": "In Russian «победить» has no first-person singular form, «дерзить» none either, and «светает» is used only in the third person."
 	},
 	{
 		"id": "defective-spelling",
@@ -1533,7 +1574,8 @@
 		"see": [
 			"неопределённое",
 			"артикль"
-		]
+		],
+		"enText": "Russian has no articles: definiteness is conveyed by word order, intonation and context."
 	},
 	{
 		"id": "degrees-of-comparison",
@@ -1545,7 +1587,8 @@
 			"сравнительная степень",
 			"превосходная степень",
 			"имя прилагательное"
-		]
+		],
+		"enText": "Russian has three: positive «сильный», comparative «сильнее» or «более сильный», and superlative «сильнейший» or «самый сильный»."
 	},
 	{
 		"id": "demonym",
@@ -1597,7 +1640,8 @@
 		"see": [
 			"глагол",
 			"отрицание"
-		]
+		],
+		"enText": "Russian has no such construction: negation is expressed with the particle «не» and an ordinary verb form."
 	},
 	{
 		"id": "dependent-clause",
@@ -1625,7 +1669,8 @@
 		"see": [
 			"глагол",
 			"залог"
-		]
+		],
+		"enText": "Russian has no such verbs; reflexive verbs in «-ся» («строиться») are partly similar, but they change voice rather than merely form."
 	},
 	{
 		"id": "derived-terms",
@@ -1689,7 +1734,8 @@
 		"see": [
 			"наклонение",
 			"инфинитив"
-		]
+		],
+		"enText": "Russian has no special such form: a wish is expressed with «хотеть» plus an infinitive or with the particle «бы»: «хотел бы поехать»."
 	},
 	{
 		"id": "determinate-verb",
@@ -1730,7 +1776,8 @@
 			"местоимение",
 			"имя прилагательное",
 			"часть речи"
-		]
+		],
+		"enText": "In the Russian tradition such words are classed as pronouns and pronominal adjectives rather than as a separate part of speech."
 	},
 	{
 		"id": "deverbal",
@@ -1770,7 +1817,8 @@
 		"see": [
 			"диереза",
 			"умлаут"
-		]
+		],
+		"enText": "Russian writing has almost no diacritics: the dots over «ё» and the stress mark in teaching texts play that role."
 	},
 	{
 		"id": "diaeresis",
@@ -1795,7 +1843,8 @@
 		],
 		"see": [
 			"просторечное"
-		]
+		],
+		"enText": "In Russian the corresponding labels are «областное» and «диалектное»."
 	},
 	{
 		"id": "diminutive",
@@ -1819,7 +1868,8 @@
 			"винительный падеж",
 			"дополнение",
 			"переходный глагол"
-		]
+		],
+		"enText": "In Russian it is expressed by the accusative without a preposition, more rarely by the genitive."
 	},
 	{
 		"id": "disjunctive-pronoun",
@@ -1832,7 +1882,8 @@
 		"see": [
 			"местоимение",
 			"личное местоимение"
-		]
+		],
+		"enText": "Russian has no special form — «я» and «меня» serve both with a verb and independently."
 	},
 	{
 		"id": "displaced",
@@ -1906,7 +1957,8 @@
 			"число",
 			"единственное число",
 			"множественное число"
-		]
+		],
+		"enText": "Modern Russian has none; traces survive in combinations like «два стола», «две книги» and in words such as «очи» and «рукава»."
 	},
 	{
 		"id": "dummy-pronoun",
@@ -1919,7 +1971,8 @@
 		"see": [
 			"местоимение",
 			"безличное предложение"
-		]
+		],
+		"enText": "In Russian impersonal sentences do without such a word: «хорошо знать, что всё в порядке»."
 	},
 	{
 		"id": "dvandva",
@@ -1964,7 +2017,8 @@
 		],
 		"see": [
 			"народная этимология"
-		]
+		],
+		"enText": "Russian has no term for it and borrows the word as «эггкорн»; an example is «скрипя сердцем» for «скрепя сердце»."
 	},
 	{
 		"id": "elative",
@@ -1976,7 +2030,8 @@
 			"степени сравнения",
 			"превосходная степень",
 			"сравнительная степень"
-		]
+		],
+		"enText": "Russian has no such form: the comparative is expressed by «лучше», and the superlative by «лучший» or «самый лучший»."
 	},
 	{
 		"id": "elative-case",
@@ -1988,7 +2043,8 @@
 			"падеж",
 			"родительный падеж",
 			"аблатив"
-		]
+		],
+		"enText": "In Russian its meaning is carried by the genitive with the prepositions «из», «от» and «с»."
 	},
 	{
 		"id": "elision",
@@ -2036,7 +2092,8 @@
 		"see": [
 			"частица",
 			"местоимение"
-		]
+		],
+		"enText": "In Russian this role is played by emphatic particles and pronouns: «я сам это видел», «даже он не знал»."
 	},
 	{
 		"id": "enclisis",
@@ -2083,7 +2140,8 @@
 		"aliases": [],
 		"see": [
 			"транскрипция"
-		]
+		],
+		"enText": "In Russian dictionaries practical transcription is used instead."
 	},
 	{
 		"id": "entry",
@@ -2119,7 +2177,8 @@
 		"see": [
 			"род",
 			"общий род"
-		]
+		],
+		"enText": "In Russian such words are usually classed as common gender."
 	},
 	{
 		"id": "eponym",
@@ -2153,7 +2212,8 @@
 		"see": [
 			"сравнительная степень",
 			"степени сравнения"
-		]
+		],
+		"enText": "In Russian it is the construction with «такой же… как»."
 	},
 	{
 		"id": "ergative-case",
@@ -2165,7 +2225,8 @@
 			"падеж",
 			"эргативный глагол",
 			"именительный падеж"
-		]
+		],
+		"enText": "Russian has no such system: the subject is always in the nominative case."
 	},
 	{
 		"id": "ergative-verb",
@@ -2177,7 +2238,8 @@
 			"переходный глагол",
 			"непереходный глагол",
 			"залог"
-		]
+		],
+		"enText": "In Russian pairs like «катать — кататься» come close."
 	},
 	{
 		"id": "etymology",
@@ -2313,7 +2375,8 @@
 		"see": [
 			"родительный падеж",
 			"определение"
-		]
+		],
+		"enText": "It corresponds to the Russian genitive or to an agreeing modifier."
 	},
 	{
 		"id": "fpl",
@@ -2324,7 +2387,8 @@
 		"see": [
 			"женский род",
 			"множественное число"
-		]
+		],
+		"enText": "The Russian equivalents are the abbreviations «ж. р. мн. ч.»."
 	},
 	{
 		"id": "factitive-verb",
@@ -2500,7 +2564,8 @@
 		"see": [
 			"вид",
 			"глагол"
-		]
+		],
+		"enText": "In Russian such forms are formed with the suffixes -ива- and -ыва- and are considered archaic or colloquial."
 	},
 	{
 		"id": "free-state",
@@ -2550,7 +2615,8 @@
 		"see": [
 			"будущее время",
 			"совершенный вид"
-		]
+		],
+		"enText": "In Russian it corresponds to the future tense of the perfective aspect: «к тому времени я уже прочитаю книгу»."
 	},
 	{
 		"id": "future-tense",
@@ -2564,7 +2630,8 @@
 			"настоящее время",
 			"прошедшее время",
 			"время"
-		]
+		],
+		"enText": "In Russian it is formed in two ways: a simple form from perfective verbs («напишу») and a compound «буду писать»."
 	},
 	{
 		"id": "gemination",
@@ -2589,7 +2656,8 @@
 			"женский род",
 			"средний род",
 			"согласование"
-		]
+		],
+		"enText": "In Russian gender is masculine, feminine or neuter, and adjectives and pronouns agree with the noun in gender: «новый дом», «новая книга», «новое окно»."
 	},
 	{
 		"id": "gender-neutral",
@@ -2600,7 +2668,8 @@
 		"see": [
 			"общий род",
 			"эпицен"
-		]
+		],
+		"enText": "In Russian words of common gender and descriptive phrases are used more often."
 	},
 	{
 		"id": "genericized-trademark",
@@ -2626,7 +2695,8 @@
 			"падеж",
 			"винительный падеж",
 			"именительный падеж"
-		]
+		],
+		"enText": "In Russian it is used both with prepositions and without them."
 	},
 	{
 		"id": "gerund",
@@ -2638,7 +2708,8 @@
 			"деепричастие",
 			"отглагольное существительное",
 			"причастие"
-		]
+		],
+		"enText": "Russian has no gerund: its meanings are carried by the verbal noun («чтение») and the adverbial participle («читая»)."
 	},
 	{
 		"id": "ghost-word",
@@ -2675,7 +2746,8 @@
 		"see": [
 			"смычный",
 			"согласный"
-		]
+		],
+		"enText": "In Russian it is not a separate phoneme, but often arises before an initial vowel after a pause, and occurs between vowels in «не-а»."
 	},
 	{
 		"id": "government",
@@ -2733,7 +2805,8 @@
 		"see": [
 			"вид",
 			"несовершенный вид"
-		]
+		],
+		"enText": "In Russian it is carried by the imperfective aspect: «по утрам я бегаю», «он часто читает»."
 	},
 	{
 		"id": "hapax-legomenon",
@@ -2778,7 +2851,8 @@
 		"see": [
 			"сандхи",
 			"элизия"
-		]
+		],
+		"enText": "In Russian it occurs within a word («аорта», «поэт») and across a word boundary («она ушла»), and in writing it is sometimes avoided by inserting a consonant or choosing a different form."
 	},
 	{
 		"id": "higher-register",
@@ -2891,7 +2965,8 @@
 		],
 		"see": [
 			"разговорное"
-		]
+		],
+		"enText": "The Russian labels of this kind are «шутливое» and «ироническое»."
 	},
 	{
 		"id": "hyperbole",
@@ -2950,7 +3025,8 @@
 		],
 		"see": [
 			"метатеза"
-		]
+		],
+		"enText": "A Russian example from the history of personal names: «Флор» became «Фрол»."
 	},
 	{
 		"id": "hyphenation",
@@ -2995,7 +3071,8 @@
 		"aliases": [],
 		"see": [
 			"изафет"
-		]
+		],
+		"enText": "In Russian it is matched by combinations with the genitive and possessive words: «дом отца», «отцов дом»."
 	},
 	{
 		"id": "ideophone",
@@ -3005,7 +3082,8 @@
 		"aliases": [],
 		"see": [
 			"звукоподражание"
-		]
+		],
+		"enText": "In Russian onomatopoeias and words like «бултых» and «шмыг» come close."
 	},
 	{
 		"id": "idiom",
@@ -3040,7 +3118,8 @@
 		"see": [
 			"повелительное наклонение",
 			"сослагательное наклонение"
-		]
+		],
+		"enText": "Russian has no such mood: its meanings are carried by the imperative and the subjunctive."
 	},
 	{
 		"id": "imitative",
@@ -3060,7 +3139,8 @@
 		"aliases": [],
 		"see": [
 			"словоизменение"
-		]
+		],
+		"enText": "A Russian example: «дом» — «дома́», where the oblique forms have an extra syllable."
 	},
 	{
 		"id": "imperative-mood",
@@ -3073,7 +3153,8 @@
 		"see": [
 			"изъявительное наклонение",
 			"сослагательное наклонение"
-		]
+		],
+		"enText": "In Russian imperative forms are formed from the present-tense stem."
 	},
 	{
 		"id": "imperfect",
@@ -3084,7 +3165,8 @@
 		"see": [
 			"прошедшее время",
 			"несовершенный вид"
-		]
+		],
+		"enText": "Russian has no separate imperfect form: these meanings are expressed by the imperfective past: «он читал по вечерам»."
 	},
 	{
 		"id": "imperfective-aspect",
@@ -3120,7 +3202,8 @@
 		],
 		"see": [
 			"безличный глагол"
-		]
+		],
+		"enText": "In Russian impersonal sentences and words such as «нужно», «можно» and «следует» are of this kind, and a generalized person is carried by generalized-personal sentences: «что посеешь, то и пожнёшь»."
 	},
 	{
 		"id": "impersonal-verb",
@@ -3130,7 +3213,8 @@
 		"aliases": [],
 		"see": [
 			"безличность"
-		]
+		],
+		"enText": "In Russian such verbs are «светает», «знобит» and «хочется», and the English \"I must do it\" is rendered by an impersonal construction: «мне надо это сделать»."
 	},
 	{
 		"id": "inalienable",
@@ -3140,7 +3224,8 @@
 		"aliases": [],
 		"see": [
 			"отчуждаемый"
-		]
+		],
+		"enText": "In Russian such relations are expressed by the genitive and possessive words."
 	},
 	{
 		"id": "inanimate",
@@ -3153,7 +3238,8 @@
 		"see": [
 			"одушевлённость",
 			"винительный падеж"
-		]
+		],
+		"enText": "Russian distinguishes animate and inanimate nouns by their accusative forms: in inanimate nouns the accusative coincides with the nominative — «вижу дом»."
 	},
 	{
 		"id": "inchoative",
@@ -3167,7 +3253,8 @@
 		"see": [
 			"способ действия",
 			"вид"
-		]
+		],
+		"enText": "In Russian its meanings are carried by inceptive verbs with the prefixes «за-» and «по-»: «заболеть», «покраснеть», «пойти»."
 	},
 	{
 		"id": "incomparable",
@@ -3191,7 +3278,8 @@
 		],
 		"see": [
 			"склонение"
-		]
+		],
+		"enText": "In Russian such words are «пальто», «метро» and «кино»; loanwords and abbreviations are often invariable."
 	},
 	{
 		"id": "indefinite",
@@ -3202,7 +3290,8 @@
 		"see": [
 			"определённый",
 			"местоимение"
-		]
+		],
+		"enText": "In Russian these meanings are carried by pronouns and particles: «какой-то», «некий», «кое-кто»."
 	},
 	{
 		"id": "independent-clause",
@@ -3248,7 +3337,8 @@
 		"see": [
 			"прямое дополнение",
 			"дательный падеж"
-		]
+		],
+		"enText": "In Russian it is expressed by the dative case."
 	},
 	{
 		"id": "infix",
@@ -3259,7 +3349,8 @@
 		"see": [
 			"аффикс",
 			"морфема"
-		]
+		],
+		"enText": "Russian has no infixes."
 	},
 	{
 		"id": "infinitive",
@@ -3272,7 +3363,8 @@
 		"see": [
 			"глагол",
 			"спряжение"
-		]
+		],
+		"enText": "In Russian it is the form in «-ть»: «читать», «идти», and it may be part of a compound predicate: «хочу читать»."
 	},
 	{
 		"id": "inflection",
@@ -3309,7 +3401,8 @@
 		"aliases": [],
 		"see": [
 			"заимствование"
-		]
+		],
+		"enText": "Russian «мать» is inherited from Proto-Slavic."
 	},
 	{
 		"id": "initialism",
@@ -3365,7 +3458,8 @@
 		"see": [
 			"падеж",
 			"именительный падеж"
-		]
+		],
+		"enText": "In Russian it answers the questions «кем?» and «чем?»: «писать ручкой», «резать ножом»; it can also denote the agent: «дом построен плотниками»."
 	},
 	{
 		"id": "intensifier",
@@ -3390,7 +3484,8 @@
 		],
 		"see": [
 			"диминутив"
-		]
+		],
+		"enText": "In Russian words with the suffixes «-ищ-» and «-ин-» come close: «домище», «ручища»."
 	},
 	{
 		"id": "interjection",
@@ -3413,7 +3508,8 @@
 		],
 		"see": [
 			"морфема"
-		]
+		],
+		"enText": "In Russian the linking vowels «о» and «е» play this role: «паровоз», «землетрясение»."
 	},
 	{
 		"id": "internationalism",
@@ -3477,7 +3573,8 @@
 		"aliases": [],
 		"see": [
 			"порядок слов"
-		]
+		],
+		"enText": "In Russian inversion serves to emphasise: «Тебя я жду» instead of «Я жду тебя», «Пришёл он поздно»."
 	},
 	{
 		"id": "iotation",
@@ -3505,12 +3602,13 @@
 	{
 		"id": "irab",
 		"ru": "ираб",
-		"en": "ʾIʿrab ʾiʿrāb",
+		"en": "ʾiʿrāb",
 		"def": "В арабском языке — система словоизменительных окончаний имён и глаголов, выражающих падежи и наклонения. На письме они, как правило, не обозначаются и не произносятся в паузе, но обязательны в классическом арабском. В русском такой системы нет: падеж выражается окончанием, которое и пишется, и произносится.",
 		"aliases": [
 			"дезиненциальная флексия"
 		],
-		"see": []
+		"see": [],
+		"enText": "Russian has no such system: case is expressed by an ending that is both written and pronounced."
 	},
 	{
 		"id": "irregular",
@@ -3522,7 +3620,8 @@
 		],
 		"see": [
 			"словоизменение"
-		]
+		],
+		"enText": "A Russian example: «человек» — «люди» is formed irregularly; by the usual rule it would be «человеки»."
 	},
 	{
 		"id": "iterative",
@@ -3535,7 +3634,8 @@
 		"see": [
 			"несовершенный вид",
 			"хабитуалис"
-		]
+		],
+		"enText": "In Russian it is carried by the imperfective aspect and by special verbs: «хаживал», «читывал», «говаривал»."
 	},
 	{
 		"id": "izafet",
@@ -3545,17 +3645,19 @@
 		"aliases": [],
 		"see": [
 			"идафа"
-		]
+		],
+		"enText": "In Russian it is matched by a combination with the genitive: «дом отца»."
 	},
 	{
 		"id": "jam",
 		"ru": "двойное множественное",
-		"en": "or",
+		"en": "jam",
 		"def": "В персидском языке — форма множественного числа, образованная от другой формы множественного числа, часто застывшей. В русском такого образования нет.",
 		"aliases": [
 			"джам"
 		],
-		"see": []
+		"see": [],
+		"enText": "Russian has no such formation."
 	},
 	{
 		"id": "jargon",
@@ -3581,7 +3683,8 @@
 		"see": [
 			"повелительное наклонение",
 			"наклонение"
-		]
+		],
+		"enText": "Russian has no such mood: its meanings are carried by the imperative and the particles «пусть» and «да»: «пусть он войдёт»."
 	},
 	{
 		"id": "karmadharaya",
@@ -3593,7 +3696,8 @@
 			"бахуврихи",
 			"татпуруша",
 			"двандва"
-		]
+		],
+		"enText": "Russian does not single out such a special class of compounds."
 	},
 	{
 		"id": "katharevousa",
@@ -3601,7 +3705,8 @@
 		"en": "Katharevousa",
 		"def": "Искусственный литературный язык, созданный в Греции после обретения независимости от Османской империи на основе классического греческого. Использовался во всех официальных сферах до 1976 года. В русском такого разрыва между книжным и разговорным языком не было.",
 		"aliases": [],
-		"see": []
+		"see": [],
+		"enText": "Russian had no such gap between the literary and the colloquial language."
 	},
 	{
 		"id": "kenning",
@@ -3609,7 +3714,8 @@
 		"en": "kenning",
 		"def": "Метафорическое сложное слово или словосочетание, иносказательно называющее простой предмет, особенно в германской поэзии. Например, море там называют «дорогой китов». В русской поэзии постоянного такого приёма нет.",
 		"aliases": [],
-		"see": []
+		"see": [],
+		"enText": "Russian poetry has no such standing device."
 	},
 	{
 		"id": "kulturwort",
@@ -3671,7 +3777,8 @@
 		"aliases": [
 			"связывание звуков"
 		],
-		"see": []
+		"see": [],
+		"enText": "Russian has no such obligatory linking of words."
 	},
 	{
 		"id": "ligature",
@@ -3711,7 +3818,8 @@
 		"aliases": [
 			"литературное"
 		],
-		"see": []
+		"see": [],
+		"enText": "It corresponds to the Russian label «книжное»."
 	},
 	{
 		"id": "litotes",
@@ -3749,7 +3857,8 @@
 		"see": [
 			"предложный падеж",
 			"падеж"
-		]
+		],
+		"enText": "In Russian it corresponds mainly to the prepositional case: «в городе», «на столе»; the remnants of the locative proper are forms like «в лесу», «на полу»."
 	},
 	{
 		"id": "locative-qualitative-case",
@@ -3762,7 +3871,8 @@
 		"see": [
 			"предложный падеж",
 			"падеж"
-		]
+		],
+		"enText": "Russian has no such case; compare the prepositional case."
 	},
 	{
 		"id": "logophoricity",
@@ -3772,7 +3882,8 @@
 		"aliases": [],
 		"see": [
 			"местоимение"
-		]
+		],
+		"enText": "Russian has no such pronouns: it uses the ordinary «он» and refers to the speaker with words."
 	},
 	{
 		"id": "loosely",
@@ -3805,7 +3916,8 @@
 		"aliases": [],
 		"see": [
 			"диакритический знак"
-		]
+		],
+		"enText": "It is not used in Russian writing, but it is used in scholarly transcription."
 	},
 	{
 		"id": "markedness",
@@ -3856,7 +3968,8 @@
 			"средний залог",
 			"страдательный залог",
 			"возвратный глагол"
-		]
+		],
+		"enText": "Russian has no separate mediopassive; compare reflexive verbs in -ся and the passive voice."
 	},
 	{
 		"id": "meiosis",
@@ -3877,12 +3990,13 @@
 		"aliases": [],
 		"see": [
 			"женская речь"
-		]
+		],
+		"enText": "Russian has no such division."
 	},
 	{
 		"id": "mention",
 		"ru": "упоминание",
-		"en": "use–mention distinction",
+		"en": "mention",
 		"def": "В цитатах — употребление слова не по значению, а как указания на само это слово: в примере «Дом — односложное слово» слово «дом» упоминается, а в предложении «Мы живём в доме» — употребляется по значению. Ср. употребление.",
 		"aliases": [],
 		"see": [
@@ -3959,7 +4073,8 @@
 			"медиопассив",
 			"страдательный залог",
 			"действительный залог"
-		]
+		],
+		"enText": "In Russian reflexive verbs in -ся come close."
 	},
 	{
 		"id": "minced-oath",
@@ -3971,7 +4086,8 @@
 		],
 		"see": [
 			"эвфемизм"
-		]
+		],
+		"enText": "In Russian this is how mat is replaced: «блин», «ёлки-палки» instead of the profanity."
 	},
 	{
 		"id": "mixed",
@@ -3983,7 +4099,8 @@
 		],
 		"see": [
 			"склонение"
-		]
+		],
+		"enText": "Russian has no such contrast; heteroclite words like «путь» and «время» are partly similar."
 	},
 	{
 		"id": "monolectic",
@@ -4034,7 +4151,7 @@
 	{
 		"id": "morphology",
 		"ru": "морфология",
-		"en": "Morphology morphological",
+		"en": "morphological",
 		"def": "Раздел языкознания, изучающий слова и их строение из значимых частей — морфем; также само строение слов. Одни языки выражают грамматические значения преимущественно морфологией, другие — синтаксисом и служебными словами.",
 		"aliases": [
 			"морфологический"
@@ -4068,7 +4185,8 @@
 		],
 		"see": [
 			"чередование звуков"
-		]
+		],
+		"enText": "In Russian such alternations accompany inflection and word formation: «друг» — «друзья», «рука» — «ручной»."
 	},
 	{
 		"id": "mute-h",
@@ -4078,7 +4196,8 @@
 		"aliases": [],
 		"see": [
 			"льезон"
-		]
+		],
+		"enText": "Russian has no such phenomenon."
 	},
 	{
 		"id": "narrowly",
@@ -4102,7 +4221,8 @@
 		"see": [
 			"инфикс",
 			"вид"
-		]
+		],
+		"enText": "Russian has no such infix; aspectual meaning is expressed by prefixes and suffixes."
 	},
 	{
 		"id": "negative-polarity-item",
@@ -4114,7 +4234,8 @@
 		],
 		"see": [
 			"отрицание"
-		]
+		],
+		"enText": "In Russian «ни один» is one: «не пришёл ни один человек», «Пришёл ли хоть один?», but not «Пришёл ни один»."
 	},
 	{
 		"id": "negative-verb",
@@ -4124,7 +4245,8 @@
 		"aliases": [],
 		"see": [
 			"отрицание"
-		]
+		],
+		"enText": "Russian has no such verb: negation is expressed by the particle «не»."
 	},
 	{
 		"id": "neologism",
@@ -4148,7 +4270,8 @@
 			"мужской род",
 			"женский род",
 			"род"
-		]
+		],
+		"enText": "In Russian the neuter contains words in -о and -е and the heteroclite words in -мя."
 	},
 	{
 		"id": "nominal",
@@ -4174,7 +4297,8 @@
 		"see": [
 			"падеж",
 			"подлежащее"
-		]
+		],
+		"enText": "In Russian it is the dictionary form of nouns."
 	},
 	{
 		"id": "nominalization",
@@ -4187,7 +4311,8 @@
 		],
 		"see": [
 			"имя существительное"
-		]
+		],
+		"enText": "In Russian it is more often called субстантивация."
 	},
 	{
 		"id": "nonce-word",
@@ -4211,7 +4336,8 @@
 			"инфинитив",
 			"причастие",
 			"деепричастие"
-		]
+		],
+		"enText": "In Russian they are the infinitive, the participle and the деепричастие (adverbial participle)."
 	},
 	{
 		"id": "non-past-tense",
@@ -4225,7 +4351,8 @@
 			"время",
 			"настоящее время",
 			"будущее время"
-		]
+		],
+		"enText": "Russian has no such common form: the present and the future are distinguished («читаю» — «буду читать»)."
 	},
 	{
 		"id": "nonstandard",
@@ -4250,7 +4377,8 @@
 		"see": [
 			"одушевлённость",
 			"число"
-		]
+		],
+		"enText": "Russian has no such category; animacy is partly similar."
 	},
 	{
 		"id": "n",
@@ -4264,7 +4392,8 @@
 			"часть речи",
 			"склонение",
 			"имя прилагательное"
-		]
+		],
+		"enText": "In Russian it inflects for gender, number and case."
 	},
 	{
 		"id": "noun-adjunct",
@@ -4287,7 +4416,8 @@
 		"see": [
 			"род",
 			"одушевлённость"
-		]
+		],
+		"enText": "Russian has no such system; it has only three genders."
 	},
 	{
 		"id": "noun-clause",
@@ -4313,7 +4443,8 @@
 		"see": [
 			"единственное число",
 			"множественное число"
-		]
+		],
+		"enText": "In Russian only the singular and the plural are distinguished; a trace of the dual survives in combinations like «два стола»."
 	},
 	{
 		"id": "numeronym",
@@ -4323,7 +4454,8 @@
 		"aliases": [
 			"числовое сокращение"
 		],
-		"see": []
+		"see": [],
+		"enText": "In Russian such abbreviations are rare."
 	},
 	{
 		"id": "object",
@@ -4352,7 +4484,8 @@
 		"see": [
 			"именительный падеж",
 			"падеж"
-		]
+		],
+		"enText": "In Russian they are all the cases except the nominative: the genitive, dative, accusative, instrumental and prepositional."
 	},
 	{
 		"id": "obsolete",
@@ -4373,7 +4506,8 @@
 		"en": "OED",
 		"def": "Крупнейший исторический словарь английского языка, издающийся с конца XIX века. Есть сокращённая версия и отдельные выпуски первого и второго изданий. Ближайший русский аналог по охвату — «Словарь современного русского литературного языка» в 17 томах.",
 		"aliases": [],
-		"see": []
+		"see": [],
+		"enText": "The closest Russian equivalent in scope is the «Словарь современного русского литературного языка» in 17 volumes."
 	},
 	{
 		"id": "offensive",
@@ -4384,7 +4518,8 @@
 			"грубое",
 			"бранное"
 		],
-		"see": []
+		"see": [],
+		"enText": "It corresponds to the Russian labels «грубое» and «бранное»."
 	},
 	{
 		"id": "onomatopoeia",
@@ -4410,7 +4545,8 @@
 		"see": [
 			"сослагательное наклонение",
 			"повелительное наклонение"
-		]
+		],
+		"enText": "Russian has no separate optative; a wish is expressed with the particle «бы» or the word «пусть»."
 	},
 	{
 		"id": "orthographic-borrowing",
@@ -4421,7 +4557,8 @@
 		"see": [
 			"заимствование",
 			"калька"
-		]
+		],
+		"enText": "Russian has virtually no borrowings of this type."
 	},
 	{
 		"id": "outdated",
@@ -4580,7 +4717,8 @@
 			"деепричастие",
 			"глагол",
 			"имя прилагательное"
-		]
+		],
+		"enText": "In Russian participles are active or passive, and present or past."
 	},
 	{
 		"id": "particle",
@@ -4605,7 +4743,8 @@
 		"see": [
 			"родительный падеж",
 			"партитивный падеж"
-		]
+		],
+		"enText": "In Russian it is expressed by the words «немного» and «часть» and by the genitive: «выпить воды»."
 	},
 	{
 		"id": "partitive-case",
@@ -4618,7 +4757,8 @@
 		"see": [
 			"родительный падеж",
 			"падеж"
-		]
+		],
+		"enText": "In Russian its traces are visible in forms like «выпить чаю» and «прибавить сахару»."
 	},
 	{
 		"id": "passive-voice",
@@ -4632,7 +4772,8 @@
 			"действительный залог",
 			"залог",
 			"причастие"
-		]
+		],
+		"enText": "In Russian it is formed by verbs in «-ся» and by passive participles."
 	},
 	{
 		"id": "past-tense",
@@ -4644,7 +4785,8 @@
 			"настоящее время",
 			"будущее время",
 			"совершенный вид"
-		]
+		],
+		"enText": "In Russian it is formed with the suffix «-л» and changes for gender and number, not for person."
 	},
 	{
 		"id": "past-historic",
@@ -4657,7 +4799,8 @@
 		"see": [
 			"прошедшее время",
 			"претерит"
-		]
+		],
+		"enText": "Russian has no such special tense."
 	},
 	{
 		"id": "past-perfect",
@@ -4680,7 +4823,8 @@
 		"see": [
 			"множественное число",
 			"двойственное число"
-		]
+		],
+		"enText": "Russian does not have it, only the singular and the plural."
 	},
 	{
 		"id": "derogatory",
@@ -4731,7 +4875,8 @@
 			"совершенный вид",
 			"давнопрошедшее время",
 			"причастие"
-		]
+		],
+		"enText": "Russian has no such special form; its meanings are carried by the perfective aspect and the past tense."
 	},
 	{
 		"id": "perfective",
@@ -4770,7 +4915,8 @@
 			"первое лицо",
 			"второе лицо",
 			"третье лицо"
-		]
+		],
+		"enText": "In Russian it is expressed by verb forms and personal pronouns."
 	},
 	{
 		"id": "personal",
@@ -4805,7 +4951,8 @@
 		],
 		"see": [
 			"иероглиф"
-		]
+		],
+		"enText": "It has nothing to do with Russian writing."
 	},
 	{
 		"id": "phono-semantic-matching",
@@ -4816,7 +4963,8 @@
 		"see": [
 			"заимствование",
 			"калька"
-		]
+		],
+		"enText": "In Russian it corresponds to calques and sound-alike borrowings."
 	},
 	{
 		"id": "phrase",
@@ -4840,7 +4988,8 @@
 		"see": [
 			"глагол",
 			"частица"
-		]
+		],
+		"enText": "Russian has no such verbs."
 	},
 	{
 		"id": "piecewise-doublet",
@@ -4896,7 +5045,8 @@
 		"see": [
 			"прошедшее время",
 			"совершенный вид"
-		]
+		],
+		"enText": "Russian has no such special tense; the meaning is carried by the perfective aspect and the order of clauses."
 	},
 	{
 		"id": "plural-2",
@@ -4950,7 +5100,8 @@
 		"aliases": [],
 		"see": [
 			"местоимение"
-		]
+		],
+		"enText": "In Russian it is «вы» and plural forms."
 	},
 	{
 		"id": "polylectic",
@@ -5038,7 +5189,8 @@
 		"see": [
 			"притяжательное прилагательное",
 			"местоимение"
-		]
+		],
+		"enText": "In Russian such words are classed as притяжательные местоимения."
 	},
 	{
 		"id": "postpositive",
@@ -5080,7 +5232,8 @@
 			"сказуемое",
 			"категория состояния",
 			"имя прилагательное"
-		]
+		],
+		"enText": "Russian grammars call such words слова категории состояния."
 	},
 	{
 		"id": "prefix",
@@ -5094,7 +5247,8 @@
 			"суффикс",
 			"корень",
 			"морфема"
-		]
+		],
+		"enText": "In Russian prefixes are usually word-forming, and less often purely grammatical."
 	},
 	{
 		"id": "preposition",
@@ -5118,7 +5272,8 @@
 			"падеж",
 			"местный падеж",
 			"предлог"
-		]
+		],
+		"enText": "In Russian it answers the questions «о ком? о чём? где?»: «о книге», «в лесу»."
 	},
 	{
 		"id": "prepositive",
@@ -5162,7 +5317,8 @@
 			"прошедшее время",
 			"будущее время",
 			"несовершенный вид"
-		]
+		],
+		"enText": "In Russian only imperfective verbs have a present-tense form; it can also express past and future events."
 	},
 	{
 		"id": "preterite",
@@ -5174,7 +5330,8 @@
 			"прошедшее время",
 			"совершенный вид",
 			"аорист"
-		]
+		],
+		"enText": "In Russian it corresponds to the past tense of the perfective aspect."
 	},
 	{
 		"id": "preterite-present-verb",
@@ -5186,7 +5343,8 @@
 			"сильный глагол",
 			"слабый глагол",
 			"вспомогательный глагол"
-		]
+		],
+		"enText": "Russian has none."
 	},
 	{
 		"id": "prevocalic",
@@ -5231,7 +5389,8 @@
 		],
 		"see": [
 			"несовершенный вид"
-		]
+		],
+		"enText": "Russian has no such special form."
 	},
 	{
 		"id": "pronominal-verb",
@@ -5269,7 +5428,8 @@
 		"aliases": [],
 		"see": [
 			"орфография"
-		]
+		],
+		"enText": "In Russian it is used to represent colloquial and dialectal speech: «чё» for «что», «щас» for «сейчас»."
 	},
 	{
 		"id": "proparoxytone",
@@ -5291,7 +5451,8 @@
 		"see": [
 			"имя существительное",
 			"нарицательное"
-		]
+		],
+		"enText": "In Russian it is written with a capital letter, as in «Орёл» (the city) versus «орёл» (the bird)."
 	},
 	{
 		"id": "proscribed",
@@ -5313,7 +5474,8 @@
 		"see": [
 			"парагога",
 			"эпентеза"
-		]
+		],
+		"enText": "In Russian «восемь» comes from «осемь», and colloquial «вострый» from «острый»."
 	},
 	{
 		"id": "protologism",
@@ -5372,7 +5534,8 @@
 		"see": [
 			"псевдозаимствование",
 			"заимствование"
-		]
+		],
+		"enText": "Russian examples include «фейсконтроль» and «афтерпати»."
 	},
 	{
 		"id": "pseudo-loan",
@@ -5399,7 +5562,8 @@
 		"see": [
 			"местоимение",
 			"имя числительное"
-		]
+		],
+		"enText": "In the Russian tradition they are quantitative pronouns and numerals."
 	},
 	{
 		"id": "quadriliteral",
@@ -5410,7 +5574,8 @@
 		"see": [
 			"трёхсогласный корень",
 			"корень"
-		]
+		],
+		"enText": "Russian has no such roots: a Russian root cannot be reduced to a set of consonants."
 	},
 	{
 		"id": "quinqueliteral",
@@ -5421,7 +5586,8 @@
 		"see": [
 			"четырёхсогласный корень",
 			"корень"
-		]
+		],
+		"enText": "Russian has no such roots."
 	},
 	{
 		"id": "rare",
@@ -5471,7 +5637,8 @@
 		"see": [
 			"возвратный",
 			"местоимение"
-		]
+		],
+		"enText": "In Russian it is the pronoun «друг друга» and reciprocal verbs such as «целоваться» and «обниматься»."
 	},
 	{
 		"id": "reconstruction",
@@ -5522,7 +5689,8 @@
 		"see": [
 			"этимон",
 			"этимология"
-		]
+		],
+		"enText": "The Russian «город» is the reflex of Proto-Slavic *gordъ."
 	},
 	{
 		"id": "reflexive",
@@ -5714,7 +5882,8 @@
 		"see": [
 			"глагол",
 			"наклонение"
-		]
+		],
+		"enText": "Russian has no separate equivalent: these meanings are expressed by different verb forms."
 	},
 	{
 		"id": "script",
@@ -5749,7 +5918,8 @@
 		"see": [
 			"второе лицо",
 			"спряжение"
-		]
+		],
+		"enText": "Russian has no separate such conjugation."
 	},
 	{
 		"id": "secondary-root",
@@ -5760,7 +5930,8 @@
 		"see": [
 			"корень",
 			"трёхсогласный корень"
-		]
+		],
+		"enText": "Russian has no such concept."
 	},
 	{
 		"id": "semantic-loan",
@@ -5773,7 +5944,8 @@
 		"see": [
 			"калька",
 			"заимствование"
-		]
+		],
+		"enText": "The Russian «мышь» likewise acquired the meaning of the computer device under the influence of English."
 	},
 	{
 		"id": "semantic-shift",
@@ -5826,7 +5998,8 @@
 			"гласный",
 			"согласный",
 			"дифтонг"
-		]
+		],
+		"enText": "In Russian it is illustrated by [j] in «май», and the Russian tradition has the close term «неслоговой гласный»."
 	},
 	{
 		"id": "sentence",
@@ -5843,7 +6016,7 @@
 	{
 		"id": "word-sense",
 		"ru": "значение слова",
-		"en": "word sense",
+		"en": "sense",
 		"def": "Отдельное закреплённое употребление слова; то значение, которое описывает словарное толкование. У многозначного слова бывает несколько значений, и каждое нумеруется.",
 		"aliases": [
 			"значение",
@@ -5922,7 +6095,8 @@
 		"see": [
 			"сокращение",
 			"аббревиатура"
-		]
+		],
+		"enText": "In Russian, conventional abbreviations such as «И. Х.» for a first name and patronymic are similar."
 	},
 	{
 		"id": "simile",
@@ -5933,7 +6107,8 @@
 		"see": [
 			"метафора",
 			"сравнительный оборот"
-		]
+		],
+		"enText": "In Russian it is usually formed with the conjunctions «как», «будто» and «словно»."
 	},
 	{
 		"id": "simplex",
@@ -6003,7 +6178,8 @@
 		"see": [
 			"заимствование",
 			"письменность"
-		]
+		],
+		"enText": "Russian has no such layer of borrowings."
 	},
 	{
 		"id": "s-l",
@@ -6108,7 +6284,8 @@
 		"see": [
 			"ломаное множественное",
 			"множественное число"
-		]
+		],
+		"enText": "Russian has no such division."
 	},
 	{
 		"id": "sound-symbolism",
@@ -6120,7 +6297,8 @@
 		],
 		"see": [
 			"звукоподражание"
-		]
+		],
+		"enText": "In Russian the initial «ш» is often associated with noise and rustling: «шуршать», «шелест», «шёпот»."
 	},
 	{
 		"id": "spelling-pronunciation",
@@ -6221,7 +6399,8 @@
 		"see": [
 			"местоимение",
 			"второе лицо"
-		]
+		],
+		"enText": "In Russian the stressed personal pronouns are similar: «тебе́, а не мне»."
 	},
 	{
 		"id": "strong-verb",
@@ -6234,7 +6413,8 @@
 		"see": [
 			"аблаут",
 			"слабый глагол"
-		]
+		],
+		"enText": "Russian verbs such as «писать — пишу» also change their vowel, but the term is not applied to them."
 	},
 	{
 		"id": "subject",
@@ -6247,7 +6427,8 @@
 		"see": [
 			"дополнение",
 			"часть речи"
-		]
+		],
+		"enText": "In Russian it answers the questions «кто?» and «что?», as in «Мальчик читает книгу»."
 	},
 	{
 		"id": "subjunctive-mood",
@@ -6262,7 +6443,8 @@
 			"наклонение",
 			"повелительное наклонение",
 			"изъявительное наклонение"
-		]
+		],
+		"enText": "In Russian it is formed with the -л form and the particle «бы»."
 	},
 	{
 		"id": "substantive",
@@ -6308,7 +6490,8 @@
 		"see": [
 			"сравнительная степень",
 			"степени сравнения"
-		]
+		],
+		"enText": "In Russian it is formed with the word «самый» or the suffixes «-ейш-» and «-айш-»."
 	},
 	{
 		"id": "superseded",
@@ -6320,7 +6503,8 @@
 		],
 		"see": [
 			"устарелое"
-		]
+		],
+		"enText": "The Russian label for it is «устарелое»."
 	},
 	{
 		"id": "superstratum",
@@ -6343,7 +6527,8 @@
 		"see": [
 			"инфинитив",
 			"деепричастие"
-		]
+		],
+		"enText": "Russian has no such form."
 	},
 	{
 		"id": "suppletion",
@@ -6421,7 +6606,8 @@
 		"see": [
 			"омонимия",
 			"падеж"
-		]
+		],
+		"enText": "In Russian, for example, the nominative and accusative of inanimate nouns coincide: «стол стоит» and «вижу стол»."
 	},
 	{
 		"id": "synecdoche",
@@ -6459,12 +6645,13 @@
 	{
 		"id": "tashif",
 		"ru": "тасхиф",
-		"en": "صحف",
+		"en": "tashif",
 		"def": "Ошибка переписчика в арабском письме: неверная расстановка диакритических точек (и'джам) на начертании букв (расм). В русском письме такого механизма нет.",
 		"aliases": [],
 		"see": [
 			"графика"
-		]
+		],
+		"enText": "Russian writing has no such mechanism."
 	},
 	{
 		"id": "tatpurusa",
@@ -6500,12 +6687,13 @@
 		],
 		"see": [
 			"разговорное"
-		]
+		],
+		"enText": "The Russian labels are «специальное» and «техническое»."
 	},
 	{
 		"id": "telicity",
 		"ru": "предельность",
-		"en": "telicity",
+		"en": "telic",
 		"def": "Свойство глагола обозначать действие с определённой границей, целью или результатом: «построить дом», «потерять ключ». Такие глаголы называют предельными, или терминативными; противопоставлены непредельным, обозначающим длящееся или повторяющееся действие, как «гулять» или «спать». В английском предельность видна при указании срока: действие завершается в назначенное время.",
 		"aliases": [
 			"предельный глагол",
@@ -6527,7 +6715,8 @@
 			"прошедшее время",
 			"настоящее время",
 			"будущее время"
-		]
+		],
+		"enText": "These three are the basic tenses in Russian as well."
 	},
 	{
 		"id": "thematicization",
@@ -6563,7 +6752,8 @@
 		],
 		"see": [
 			"сложное слово"
-		]
+		],
+		"enText": "In Russian the phenomenon is uncharacteristic."
 	},
 	{
 		"id": "tone",
@@ -6574,7 +6764,8 @@
 		"see": [
 			"ударение",
 			"интонация"
-		]
+		],
+		"enText": "In Russian tone alone is not meaning-distinguishing, though it participates in intonation."
 	},
 	{
 		"id": "topic-state",
@@ -6619,7 +6810,8 @@
 			"переводчик",
 			"переведено"
 		],
-		"see": []
+		"see": [],
+		"enText": "The Russian equivalents are «пер.» and «в переводе»."
 	},
 	{
 		"id": "transferred-sense",
@@ -6645,12 +6837,13 @@
 		"see": [
 			"деепричастие",
 			"причастие"
-		]
+		],
+		"enText": "In the Russian tradition it is called «деепричастие»: «читая», «прочитав»."
 	},
 	{
 		"id": "transitive-verb",
 		"ru": "переходный глагол",
-		"en": "Transitivity transitive verb",
+		"en": "transitive verb",
 		"def": "Глагол, требующий дополнения в винительном (или родительном) падеже без предлога: «читаю книгу», «нарубил дров». Противопоставлен непереходному глаголу.",
 		"aliases": [
 			"переходность"
@@ -6666,7 +6859,8 @@
 		"en": "translation hub",
 		"def": "Словарная статья из нескольких слов, не являющаяся идиомой (простая сумма значений) и служащая лишь узлом для переводов между статьями других языков. Русское соответствие — служебная статья-посредник.",
 		"aliases": [],
-		"see": []
+		"see": [],
+		"enText": "The Russian equivalent is «служебная статья-посредник»."
 	},
 	{
 		"id": "transliteration",
@@ -6704,7 +6898,8 @@
 		],
 		"see": [
 			"корень"
-		]
+		],
+		"enText": "Russian has no such root structure."
 	},
 	{
 		"id": "troponym",
@@ -6725,7 +6920,8 @@
 		"aliases": [
 			"Великобритания"
 		],
-		"see": []
+		"see": [],
+		"enText": "The Russian label is «британское»."
 	},
 	{
 		"id": "umlaut",
@@ -6788,7 +6984,8 @@
 		"see": [
 			"исчисляемое",
 			"имя существительное"
-		]
+		],
+		"enText": "In Russian the closest categories are material and collective nouns: «вода», «молоко», «студенчество»."
 	},
 	{
 		"id": "undeclinable",
@@ -6822,7 +7019,8 @@
 		"see": [
 			"сращение",
 			"словообразование"
-		]
+		],
+		"enText": "Russian examples are «спасибо» from «спаси Бог» and «сегодня» from «сего дня»; the phenomenon is also called «сращение»."
 	},
 	{
 		"id": "usage-notes",
@@ -6869,7 +7067,8 @@
 		"see": [
 			"согласный",
 			"палатальный"
-		]
+		],
+		"enText": "In Russian they are «к», «г» and «х», as in «сок» and «шаг»."
 	},
 	{
 		"id": "v",
@@ -6893,7 +7092,8 @@
 		"see": [
 			"послелог",
 			"предлог"
-		]
+		],
+		"enText": "In Russian, prefixes and postfixes play a similar role."
 	},
 	{
 		"id": "verbal-noun",
@@ -6919,7 +7119,8 @@
 		"see": [
 			"послелог",
 			"предлог"
-		]
+		],
+		"enText": "Russian has no phrasal verbs of this kind."
 	},
 	{
 		"id": "verlan",
@@ -6929,7 +7130,8 @@
 		"aliases": [],
 		"see": [
 			"арго"
-		]
+		],
+		"enText": "Russian has no such phenomenon."
 	},
 	{
 		"id": "virile",
@@ -6940,7 +7142,8 @@
 		"see": [
 			"мужской род",
 			"множественное число"
-		]
+		],
+		"enText": "In Russian it corresponds to the masculine plural form: «студенты», «он и она пришли»."
 	},
 	{
 		"id": "vocative-case",
@@ -6953,7 +7156,8 @@
 		"see": [
 			"падеж",
 			"обращение"
-		]
+		],
+		"enText": "Russian retains remnants of a vocative form: «Боже», «отче», «Саш»."
 	},
 	{
 		"id": "voice",
@@ -6975,7 +7179,8 @@
 		"see": [
 			"глухой",
 			"фонация"
-		]
+		],
+		"enText": "In Russian, for example, «б», «д» and «з» are voiced."
 	},
 	{
 		"id": "voiceless",
@@ -6986,7 +7191,8 @@
 		"see": [
 			"звонкий",
 			"фонация"
-		]
+		],
+		"enText": "In Russian, for example, «п», «т» and «с» are voiceless."
 	},
 	{
 		"id": "voicing",
@@ -6997,7 +7203,8 @@
 		"see": [
 			"звонкий",
 			"глухой"
-		]
+		],
+		"enText": "In Russian all vowels and sonorant consonants are voiced, while obstruents may be either voiced or voiceless: «дом — том»."
 	},
 	{
 		"id": "vowel",
@@ -7021,7 +7228,8 @@
 		"see": [
 			"ассимиляция",
 			"гласный"
-		]
+		],
+		"enText": "Russian has no such rule; the similar phenomenon there is vowel assimilation."
 	},
 	{
 		"id": "vulgar",
@@ -7035,7 +7243,8 @@
 		"see": [
 			"разговорное",
 			"просторечное"
-		]
+		],
+		"enText": "The Russian labels are «грубое», «бранное» and «нецензурное»."
 	},
 	{
 		"id": "wanderwort",
@@ -7057,7 +7266,8 @@
 		"see": [
 			"склонение",
 			"сильное склонение"
-		]
+		],
+		"enText": "Russian has no such division."
 	},
 	{
 		"id": "weak-pronoun",
@@ -7081,7 +7291,8 @@
 		"see": [
 			"сильный глагол",
 			"глагол"
-		]
+		],
+		"enText": "Russian has no such division."
 	},
 	{
 		"id": "womens-speech",
@@ -7098,14 +7309,15 @@
 	{
 		"id": "yes-no-question",
 		"ru": "общий вопрос",
-		"en": "yes/no question",
+		"en": "yes-no question",
 		"def": "Вопрос, допускающий в качестве ответа «да» или «нет»; подвид вопросов с закрытым набором ответов. В русском такой вопрос выражается вопросительной интонацией или частицей «ли»: «Ты придёшь?», «Придёшь ли ты?».",
 		"aliases": [
 			"вопрос без вопросительного слова"
 		],
 		"see": [
 			"специальный вопрос"
-		]
+		],
+		"enText": "In Russian such a question is expressed by interrogative intonation or the particle «ли»: «Ты придёшь?», «Придёшь ли ты?»."
 	},
 	{
 		"id": "zero-grade",
@@ -7118,6 +7330,7 @@
 		"see": [
 			"аблаут",
 			"ступень чередования"
-		]
+		],
+		"enText": "In Russian this kind of alternation is seen in pairs such as «беру — брать»."
 	}
 ]

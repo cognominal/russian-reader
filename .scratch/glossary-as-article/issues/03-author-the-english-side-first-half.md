@@ -16,16 +16,16 @@ appendix's own text cannot be found through a label that names something else.
 
 **Status:** ready-for-agent
 
-- [ ] Every entry in the first half carries a join to the appendix entry it came from, or is recorded as
+- [x] Every entry in the first half carries a join to the appendix entry it came from, or is recorded as
       having none.
-- [ ] Every entry in the first half that needs written English has it, and the text says what the Russian
+- [x] Every entry in the first half that needs written English has it, and the text says what the Russian
       entry says — the Russian-specific note included — rather than what the appendix says.
-- [ ] The labels that took a Wikipedia-link title or an anchor instead of the headword are corrected to
+- [x] The labels that took a Wikipedia-link title or an anchor instead of the headword are corrected to
       the appendix's own headwords: telic, sense, avoidance term, yes-no question, mention, morphological,
       transitive verb, womens speech, CJKV, ʾiʿrāb, men’s speech.
-- [ ] The entry whose appendix counterpart has no English term at all (tashif) is handled explicitly
+- [x] The entry whose appendix counterpart has no English term at all (tashif) is handled explicitly
       rather than left with an Arabic headword where an English side belongs.
-- [ ] The divergence is recorded as data, so that a later reader can see which entries were written and
+- [x] The divergence is recorded as data, so that a later reader can see which entries were written and
       which were sourced, instead of inferring it from the prose of a definition.
-- [ ] Nothing else about the entries changes: same ids, same headwords, same definitions, same
+- [x] Nothing else about the entries changes: same ids, same headwords, same definitions, same
       cross-references, same order.

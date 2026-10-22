@@ -14,13 +14,13 @@ rather than save time.
 
 **Status:** ready-for-agent
 
-- [ ] Every entry in the second half carries a join to the appendix entry it came from, or is recorded as
+- [x] Every entry in the second half carries a join to the appendix entry it came from, or is recorded as
       having none.
-- [ ] Every entry in the second half that needs written English has it, and the text says what the Russian
+- [x] Every entry in the second half that needs written English has it, and the text says what the Russian
       entry says — the Russian-specific note included — rather than what the appendix says.
-- [ ] With 03, every one of the 602 entries has an English side: no entry is left without one, and none
+- [x] With 03, every one of the 602 entries has an English side: no entry is left without one, and none
       silently falls back to a text that says something else.
-- [ ] The divergence is recorded as data, in the same shape 03 used, so the two halves are one file's
+- [x] The divergence is recorded as data, in the same shape 03 used, so the two halves are one file's
       worth of authored English and not two conventions.
-- [ ] Nothing else about the entries changes: same ids, same headwords, same definitions, same
+- [x] Nothing else about the entries changes: same ids, same headwords, same definitions, same
       cross-references, same order.
