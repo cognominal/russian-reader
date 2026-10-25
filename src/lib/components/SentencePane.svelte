@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enRangeFor, ruRuns } from '$lib/article';
+	import { pairGroupFor, ruRuns, sentenceGroups, sentenceRuns } from '$lib/article';
 	import type { Article, OpenWord, Run, Selection } from '$lib/article';
 
 	/**
@@ -39,29 +39,45 @@
 		return paragraph === undefined ? null : { paragraph, sentence: sel.sentence };
 	});
 
-	// Only the two current sentences: the Russian one that was picked, and the
-	// English one it is paired with. Nothing else belongs in this pane.
-	const ruSentence = $derived.by(() => {
+	// The pair group: the picked sentence, every Russian sentence that shares its
+	// English side, and every English sentence they name. A merge and a split are
+	// the same relation seen from opposite sides, so the pane shows the whole group.
+	const group = $derived.by(() => {
 		const pick = picked;
 		if (pick === null) return null;
-		const s = pick.paragraph.ruSentences[pick.sentence];
-		if (s === undefined) return null;
-		return pick.paragraph.ru.slice(s.start, s.end).trim();
+		if (pick.paragraph.ruSentences[pick.sentence] === undefined) return null;
+		return pairGroupFor(pick.paragraph, pick.sentence);
+	});
+
+	// The header names what the pane is showing: one sentence, or the group's range.
+	const label = $derived.by(() => {
+		const g = group;
+		if (g === null || g.ru.length === 0) return null;
+		const first = g.ru[0] + 1;
+		const last = g.ru[g.ru.length - 1] + 1;
+		return g.ru.length === 1
+			? `предложение ${first} · sentence ${first}`
+			: `предложения ${first}–${last} · sentences ${first}–${last}`;
 	});
 
 	// The Russian line is rendered from the same runs the article uses, limited to
-	// this sentence, so every word is a control carrying its exact offsets and its
+	// the group, so every word is a control carrying its exact offsets and its
 	// `ruTokens` index. The ends are trimmed the way the plain-text line was: the
 	// space the previous sentence left behind is a run of its own.
 	const runs = $derived.by(() => {
 		const pick = picked;
-		if (pick === null) return [];
-		const s = pick.paragraph.ruSentences[pick.sentence];
-		if (s === undefined) return [];
-		return trimEnds(ruRuns(pick.paragraph).filter((run) => run.sentence === s.i));
+		const g = group;
+		if (pick === null || g === null) return [];
+		const wanted = new Set(g.ru);
+		return trimEnds(
+			ruRuns(pick.paragraph).filter((run) => run.sentence !== null && wanted.has(run.sentence))
+		);
 	});
 
-	function trimEnds(list: Run[]): Run[] {
+	/** The group's Russian sentences, each a wrapper that can tint or dim as a whole. */
+	const parts = $derived(sentenceGroups(runs));
+
+	function trimEnds<T extends { text: string }>(list: T[]): T[] {
 		const out = list.map((run) => ({ ...run }));
 		while (out.length > 0 && out[0].text.trim() === '') out.shift();
 		while (out.length > 0 && out[out.length - 1].text.trim() === '') out.pop();
@@ -70,16 +86,26 @@
 		return out;
 	}
 
-	const enSentence = $derived.by(() => {
+	// The English side is every sentence of the group, each its own span. There is
+	// no current English sentence — the selection indexes Russian — so none is
+	// dimmed. Interior gaps are kept: they are the page's own spacing.
+	const enRuns = $derived.by(() => {
 		const pick = picked;
-		if (pick === null) return null;
-		const range = enRangeFor(pick.paragraph, pick.sentence);
-		if (range === null) return null;
-		// The pair can be several sentences long: slice from the start of the first
-		// to the end of the last, which keeps the page's own spacing between them.
-		const first = pick.paragraph.enSentences[range.start];
-		const last = pick.paragraph.enSentences[range.end];
-		return pick.paragraph.en.slice(first.start, last.end).trim();
+		const g = group;
+		if (pick === null || g === null || g.en.length === 0) return null;
+		const all = sentenceRuns(pick.paragraph.en, pick.paragraph.enSentences);
+		const first = g.en[0];
+		const last = g.en[g.en.length - 1];
+		const from = all.findIndex((run) => run.sentence === first);
+		let to = -1;
+		for (let k = all.length - 1; k >= 0; k--) {
+			if (all[k].sentence === last) {
+				to = k;
+				break;
+			}
+		}
+		if (from < 0 || to < from) return null;
+		return trimEnds(all.slice(from, to + 1));
 	});
 
 	/** The word being explained: the one whose button wears `--sentence`. */
@@ -90,7 +116,7 @@
 			openWord !== null &&
 			openWord.source === 'article' &&
 			openWord.paragraph === pick.paragraph.i &&
-			openWord.sentence === pick.sentence &&
+			openWord.sentence === run.sentence &&
 			openWord.tokenIndex === run.tokenIndex
 		);
 	}
@@ -104,8 +130,9 @@
 
 	function choose(run: Run) {
 		const pick = picked;
-		if (pick === null || run.tokenIndex === null) return;
-		onSelect({ paragraph: pick.paragraph.i, tokenIndex: run.tokenIndex, sentence: pick.sentence });
+		if (pick === null || run.tokenIndex === null || run.sentence === null) return;
+		// A word in a dimmed member of the group makes its own sentence current.
+		onSelect({ paragraph: pick.paragraph.i, tokenIndex: run.tokenIndex, sentence: run.sentence });
 	}
 
 	// The cooldown counts down in whole seconds. The deadline itself lives in the
@@ -135,23 +162,23 @@
 <div class="head">
 	{#if picked !== null}
 		<span class="para-no">¶{picked.paragraph.i}</span>
-		<span class="sent-no">предложение {picked.sentence + 1} · sentence {picked.sentence + 1}</span>
+		{#if label !== null}<span class="sent-no">{label}</span>{/if}
 	{:else}
 		<span class="para-no">¶—</span>
 	{/if}
 </div>
 
-{#if picked !== null && ruSentence !== null}
+{#if picked !== null && group !== null}
 	<!-- single line on purpose: no whitespace text nodes may be inserted between the exact slices -->
-	<p class="line" lang="ru" data-para={picked.paragraph.i}><span class="tag">RU</span>{#each runs as run, k (k)}{@const open = isOpen(run)}{@const n = noteFor(run)}{#if run.tokenIndex === null}<span class="txt">{run.text}</span>{:else if run.proper}<span class="proper">{run.text}</span>{:else}<button type="button" class="tok" class:open={open} aria-current={open ? 'true' : undefined} data-tok={run.tokenIndex} onclick={() => choose(run)}>{run.text}</button>{/if}{#if n !== null}<span class="status" class:error={n.failed}>{n.text}{#if left > 0}<span class="count">ещё {leftText}</span>{/if}</span>{/if}{/each}</p>
-	{#if enSentence !== null}
-		<p class="line" lang="en"><span class="tag">EN</span>{enSentence}</p>
+	<p class="line" lang="ru" data-para={picked.paragraph.i}><span class="tag">RU</span>{#each parts as part, gi (gi)}{#if part.sentence === null}{#each part.runs as run, k (k)}<span class="txt">{run.text}</span>{/each}{:else}{@const current = part.sentence === picked.sentence}<span class="sent" class:tint={current} class:dim={!current} aria-current={current ? 'true' : undefined} data-sent={part.sentence}>{#each part.runs as run, k (k)}{@const open = isOpen(run)}{@const n = noteFor(run)}{#if run.tokenIndex === null}<span class="txt">{run.text}</span>{:else if run.proper}<span class="proper">{run.text}</span>{:else}<button type="button" class="tok" class:open={open} aria-current={open ? 'true' : undefined} data-tok={run.tokenIndex} onclick={() => choose(run)}>{run.text}</button>{/if}{#if n !== null}<span class="status" class:error={n.failed}>{n.text}{#if left > 0}<span class="count">ещё {leftText}</span>{/if}</span>{/if}{/each}</span>{/if}{/each}</p>
+	{#if enRuns !== null}
+		<p class="line" lang="en"><span class="tag">EN</span>{#each enRuns as run, k (k)}{#if run.sentence === null}{run.text}{:else}<span class="en-sent" data-sent={run.sentence}>{run.text}</span>{/if}{/each}</p>
 	{:else}
 		<p class="note">Перевода этой фразы в паре нет — смотрите абзац выше.</p>
 	{/if}
 {:else}
 	<p class="hint">
-		Нажмите на предложение слева — здесь останутся только оно и его перевод.
+		Нажмите на предложение слева — здесь появится его пара.
 	</p>
 {/if}
 
@@ -209,6 +236,21 @@
 	/* the word the explanation on the left is about */
 	.tok.open,
 	.tok.open:hover {
+		background: var(--sentence);
+	}
+
+	/* a pair group's current sentence is tinted and its siblings recede, the same
+	   convention the article pane uses */
+	.sent {
+		border-radius: 2px;
+		transition: opacity 120ms ease-in-out;
+	}
+
+	.sent.dim {
+		opacity: 0.45;
+	}
+
+	.sent.tint {
 		background: var(--sentence);
 	}
 

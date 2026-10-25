@@ -34,6 +34,12 @@ The English side spreading one Russian sentence over several English sentences.
 The decision, made per paragraph, of which English sentences translate which Russian sentence.
 _Avoid_: matching, pairing, correspondence
 
+**Pair group**:
+The Russian and English sentences of one alignment component, shown together in the sentence pane:
+several Russian sentences merged into one English sentence, or one Russian sentence split across several
+English sentences. The picked Russian sentence is current; the rest of the Russian side is dimmed.
+_Avoid_: cluster, component, match set
+
 **Proper noun**:
 A word that names a person, place or organisation. In the reader it is set in italic and is never
 clickable, in either pane.
@@ -71,8 +77,10 @@ an explanation read as an origin takes it instead.
 _Avoid_: second pane, pane 2, translation pane
 
 **Sentence pane**:
-The lower block of the reader's right column, holding only the current sentence pair. It is where a
-word is clicked to ask what it means.
+The lower block of the reader's right column, holding the current sentence pair — the picked Russian
+sentence and the English sentence or sentences that translate it — plus the rest of its pair group: the
+other Russian sentences that share that translation, dimmed when the selection is on a different member.
+It is where a word is clicked to ask what it means.
 _Avoid_: third pane, pane 3, pair pane
 
 **Explanation**:

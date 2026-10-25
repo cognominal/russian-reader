@@ -28,6 +28,7 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 | `src/lib/components/{MenuBar,RussianPane,TranslationPane,SentencePane,ExplanationPane,OriginPane,AnswerBody}.svelte` | the menubar, the panes and what they render |
 | `prompts/word.md`, `prompts/word.ru.md` | the explanation prompt, in English and in Russian — one prompt twice, read at runtime (`EXPLAIN_PROMPT_PATH`) |
 | `GLOSSARY.md` | the vocabulary the code and the docs share — article, paragraph, sentence pair, rare lemma, the reading panes, explanation, explanation pane, origin |
+| `tests/` | Bun tests with `puppeteer-core`: the pair-group derivation and the sentence pane in Chromium (`CHROME_PATH` overrides `/usr/bin/chromium`) |
 
 ## Run the app
 
@@ -35,6 +36,7 @@ are defined in `GLOSSARY.md`, and the code, the spec and this file use them in t
 bun install
 bun run dev                                  # http://localhost:5173
 bun run check                                # svelte-check, 0 errors
+bun test                                     # pair-group unit tests + the sentence pane in Chromium
 bun run build && PORT=3000 node build/index.js   # adapter-node, SSR
 ```
 

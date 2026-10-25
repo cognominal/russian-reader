@@ -198,6 +198,49 @@ export function enRangeFor(
 	return { start: pair[1][0], end: pair[1][pair[1].length - 1] };
 }
 
+/**
+ * The Russian and English sentences of one alignment component, in reading
+ * order. A merge (`n` Russian sentences, one English) and a split (one Russian,
+ * `m` English) are the same object seen from opposite sides; the sentence pane
+ * shows it whole.
+ */
+export interface PairGroup {
+	ru: number[];
+	en: number[];
+}
+
+/**
+ * The pair group of a Russian sentence: the row it owns, every row that shares
+ * one of its English sentences, and every English sentence those rows name.
+ * Computed to a fixed point rather than from the measured shapes, so a future
+ * alignment that is neither a plain merge nor a plain split still closes over
+ * its whole component. A missing or empty row is a group of one, with no English
+ * side — the pane's existing "no translation in this pair" state.
+ */
+export function pairGroupFor(p: Paragraph, ruSentence: number): PairGroup {
+	const ru = new Set<number>([ruSentence]);
+	const en = new Set<number>();
+	let grew = true;
+	while (grew) {
+		grew = false;
+		for (const [r, english] of p.pairs) {
+			if (!ru.has(r)) continue;
+			for (const e of english) {
+				if (!en.has(e)) {
+					en.add(e);
+					grew = true;
+				}
+			}
+		}
+		for (const [r, english] of p.pairs) {
+			if (ru.has(r) || !english.some((e) => en.has(e))) continue;
+			ru.add(r);
+			grew = true;
+		}
+	}
+	return { ru: [...ru].sort((a, b) => a - b), en: [...en].sort((a, b) => a - b) };
+}
+
 /** A sentence addressed by paragraph and index, in reading order. */
 export interface SentenceRef {
 	paragraph: number;
